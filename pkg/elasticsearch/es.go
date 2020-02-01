@@ -2,7 +2,6 @@ package elasticsearch
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/go-logr/logr"
@@ -191,10 +190,6 @@ func (c *Client) CreateTemplate(template *xov1alpha1.ElasticSearchTemplate, log 
 	if err != nil {
 		return fmt.Errorf("can't add managed-by 2 ES template: %w", err)
 	}
-	//debug
-	out, _ := json.Marshal(newIndexTempl)
-	fmt.Printf("%s\n", string(out))
-	//debug
 	// Create template
 	err = c.createOrUpdateTemplate(template.Spec.Name, newIndexTempl)
 	if err != nil {

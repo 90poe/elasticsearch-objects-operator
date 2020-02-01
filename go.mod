@@ -7,7 +7,6 @@ require (
 	github.com/movetokube/postgres-operator v0.0.0-20200125172242-468519ccfed0
 	github.com/olivere/elastic/v7 v7.0.10
 	github.com/operator-framework/operator-sdk v0.15.0
-	github.com/prometheus/common v0.7.0
 	github.com/spf13/pflag v1.0.5
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
