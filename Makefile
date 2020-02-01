@@ -1,6 +1,8 @@
 .PHONY: all build deps lint check-goos
 SHELL=/bin/bash
 
+version=$(shell cat version/version.go | grep Version | cut -d'"' -f2)
+
 ifeq ($(OS),Windows_NT)
     OSNAME = windows
 else
@@ -20,7 +22,7 @@ endif
 all: unit_test lint build
 
 build: unit_test
-	operator-sdk build xo.90poe.io/elasticsearch-operator
+	operator-sdk build --go-build-args '-ldflags=-s -ldflags=-w' xo.90poe.io/elasticsearch-operator:$(version)
 
 deps:
 	go mod vendor
