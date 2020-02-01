@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"sort"
 	"testing"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
@@ -181,8 +182,14 @@ func TestGetKeysFromSettings(t *testing.T) {
 			t.Fatalf("could not unmarshal '%s'", test.settings)
 		}
 		retKeys := getKeysFromSettings("", sett)
+		sort.Slice(retKeys, func(i, j int) bool {
+			return retKeys[i] > retKeys[j]
+		})
+		sort.Slice(test.keys, func(i, j int) bool {
+			return test.keys[i] > test.keys[j]
+		})
 		if !reflect.DeepEqual(retKeys, test.keys) {
-			t.Fatalf("keys are fetched incorrect. Expected %v, got %v", test.keys, retKeys)
+			t.Fatalf("keys are fetched incorrect. Expected '%v', got '%v'", test.keys, retKeys)
 		}
 	}
 }

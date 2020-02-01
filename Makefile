@@ -20,9 +20,7 @@ endif
 all: unit_test lint build
 
 build: unit_test
-	CGO_ENABLED=0 GOOS=linux go build -mod=vendor -ldflags="-s -w" -a -o ./artifacts/svc-unpacked ./cmd/xo
-	rm -rf ./artifacts/svc
-	upx -q -o ./artifacts/svc ./artifacts/svc-unpacked
+	operator-sdk build xo.90poe.io/elasticsearch-operator
 
 deps:
 	go mod vendor
