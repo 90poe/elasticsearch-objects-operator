@@ -92,8 +92,8 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	mgr, err := manager.New(cfg, manager.Options{
+		// Read more about options here https://godoc.org/github.com/kubernetes-sigs/controller-runtime/pkg/manager#Manager
 		// We are watching all namespaces
-		// Namespace:          namespace,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
 	})
 	if err != nil {
