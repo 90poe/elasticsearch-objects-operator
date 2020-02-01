@@ -2,6 +2,7 @@ apiVersion: xo.90poe.io/v1alpha1
 kind: ElasticSearchTemplate
 metadata:
   name: example-elasticsearchtemplate
+  namespace: zm
 spec:
   name: dev_test_test_tmpl
   drop_on_delete: true

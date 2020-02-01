@@ -2,7 +2,7 @@ apiVersion: xo.90poe.io/v1alpha1
 kind: ElasticSearchIndex
 metadata:
   name: example-elasticsearchindex
-  namespace: 90
+  namespace: "90"
 spec:
   name: dev_test_test
   drop_on_delete: true
