@@ -85,9 +85,16 @@ type ElasticSearchTemplateSpec struct {
 
 // ElasticSearchTemplateStatus defines the observed state of ElasticSearchTemplate
 type ElasticSearchTemplateStatus struct {
-	Succeeded bool `json:"succeeded"`
+	// Acknowledgment of last operation success from ES cluster. If false - last operation failed or was not performed
 	// +optional
-	Name string `json:"template_name"`
+	Acknowledged bool `json:"acknowledged,omitempty"`
+	// Last operation attempted on ES template. Can be: create or udpate
+	// +kubebuilder:validation:Pattern=`^(create|update)$`
+	Operation string `json:"operation"`
+	// LatestError would hold error, if last operation was un-successful, or it would be empty otherways
+	// +optional
+	LatestError string `json:"latest_error,omitempty"`
+	Name        string `json:"template_name"`
 
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file

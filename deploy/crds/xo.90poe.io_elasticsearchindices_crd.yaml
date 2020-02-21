@@ -329,12 +329,25 @@ spec:
         status:
           description: ElasticSearchIndexStatus defines the observed state of ElasticSearchIndex
           properties:
-            index_name:
-              type: string
-            succeeded:
+            acknowledged:
+              description: Acknowledgment of last operation success from ES cluster.
+                If false - last operation failed or was not performed
               type: boolean
+            index_name:
+              description: Name of index
+              type: string
+            latest_error:
+              description: LatestError would hold error, if last operation was un-successful,
+                or it would be empty otherways
+              type: string
+            operation:
+              description: 'Last operation attempted on ES index. Can be: create or
+                udpate'
+              pattern: ^(create|update)$
+              type: string
           required:
-          - succeeded
+          - index_name
+          - operation
           type: object
       type: object
   version: v1alpha1

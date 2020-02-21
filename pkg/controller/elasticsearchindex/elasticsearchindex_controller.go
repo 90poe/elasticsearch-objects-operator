@@ -6,10 +6,13 @@ import (
 
 	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
 	"github.com/90poe/elasticsearch-operator/pkg/config"
+	"github.com/90poe/elasticsearch-operator/pkg/consts"
 	"github.com/90poe/elasticsearch-operator/pkg/elasticsearch"
 	"github.com/90poe/elasticsearch-operator/pkg/utils"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
+
+	// metav1 "k8s.io/apimachinery/pkg/api/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	kerrors "k8s.io/apimachinery/pkg/util/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,6 +23,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
+
+const ()
 
 var log = logf.Log.WithName("controller_elasticsearchindex")
 
@@ -110,13 +115,21 @@ func (r *ReconcileElasticSearchIndex) Reconcile(request reconcile.Request) (_ re
 			reterr = kerrors.NewAggregate([]error{reterr, err})
 		}
 	}()
+	// General logic:
+	// 1. If Operation == "" - attempt to create. Set Operation="create". If no Acknowledged, Acknowledged=false
+	// 2. If Operation == "created" && Acknowledged - try to update. Set Operation = "update"
+	// 3. Always set LatestError if error occured
 
 	// deletion logic
 	if !instance.GetDeletionTimestamp().IsZero() {
-		if r.shouldDeleteIndex(instance, reqLogger) && instance.Status.Succeeded {
-			err = r.es.DeleteIndex(instance.Spec.Name, reqLogger)
+		if r.shouldDeleteIndex(instance, reqLogger) {
+			// All errors ignored
+			err = r.es.DeleteIndex(instance.Spec.Name)
 			if err != nil {
-				return reconcile.Result{}, err
+				log.Error(err, fmt.Sprintf("error deleting '%s' index '%s': %v",
+					instance.Name, instance.Spec.Name, err))
+			} else {
+				log.Info(fmt.Sprintf("successfully deleted ES index %s", instance.Spec.Name))
 			}
 		}
 		instance.SetFinalizers(nil)
@@ -125,27 +138,51 @@ func (r *ReconcileElasticSearchIndex) Reconcile(request reconcile.Request) (_ re
 		return reconcile.Result{}, nil
 	}
 
-	// creation logic
-	if !instance.Status.Succeeded {
+	//We called second time on creation event - nothing to do
+	if instance.Status.Operation == consts.ESCreateOperation &&
+		instance.ObjectMeta.Generation == 1 {
+		return reconcile.Result{}, nil
+	}
+
+	switch instance.Status.Operation {
+	case "":
 		// Create index
-		err = r.es.CreateIndex(instance, reqLogger)
+		instance.Status.Name = instance.Spec.Name
+		instance.Status.Operation = consts.ESCreateOperation
+		err = r.es.CreateIndex(instance)
 		if err != nil {
-			log.Error(err, "can't create index")
+			instance.Status.LatestError = fmt.Sprintf("%v", err)
+			log.Info(instance.Status.LatestError)
 			return reconcile.Result{}, nil
 		}
-		instance.Status.Succeeded = true
-		instance.Status.Name = instance.Spec.Name
-	} else {
+		instance.Status.Acknowledged = true
+		log.Info(fmt.Sprintf("successfully created ES index %s", instance.Spec.Name))
+	case consts.ESCreateOperation, consts.ESUpdateOperation:
 		// Update index
-		err = r.es.UpdateIndex(instance, reqLogger)
-		if err != nil {
-			log.Error(err, "can't update index")
+		if instance.Status.Operation == consts.ESCreateOperation &&
+			!instance.Status.Acknowledged {
+			//Create operation was unsuccessful - ignore update
+			log.Info(fmt.Sprintf("trying to update index '%s' which failed to create - ignoring",
+				instance.Spec.Name))
 			return reconcile.Result{}, nil
+		}
+		instance.Status.LatestError = ""
+		instance.Status.Operation = consts.ESUpdateOperation
+		msg, err := r.es.UpdateIndex(instance)
+		if err != nil {
+			instance.Status.Acknowledged = false
+			instance.Status.LatestError = fmt.Sprintf("%v", err)
+			log.Info(instance.Status.LatestError)
+			return reconcile.Result{}, nil
+		}
+		if len(msg) != 0 {
+			log.Info(msg)
 		}
 	}
 
 	err = r.addFinalizer(instance, reqLogger)
 	if err != nil {
+		log.Error(err, "can't add finalizer")
 		return r.requeue(instance, err)
 	}
 
@@ -163,13 +200,17 @@ func (r *ReconcileElasticSearchIndex) addFinalizer(m *xov1alpha1.ElasticSearchIn
 }
 
 func (r *ReconcileElasticSearchIndex) requeue(cr *xov1alpha1.ElasticSearchIndex, reason error) (reconcile.Result, error) {
-	cr.Status.Succeeded = false
+	// cr.Status.Acknowledged = false
 	return reconcile.Result{}, reason
 }
 
 func (r *ReconcileElasticSearchIndex) shouldDeleteIndex(cr *xov1alpha1.ElasticSearchIndex, logger logr.Logger) bool {
 	// If DropOnDelete is false we don't need to check any further
 	if !cr.Spec.DropOnDelete {
+		return false
+	}
+	if !cr.Status.Acknowledged {
+		// If we don't have aknowledge from Create/Update - we don't delete
 		return false
 	}
 	// Get a list of all ES Indexes

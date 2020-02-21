@@ -6,6 +6,7 @@ import (
 
 	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
 	"github.com/90poe/elasticsearch-operator/pkg/config"
+	"github.com/90poe/elasticsearch-operator/pkg/consts"
 	"github.com/90poe/elasticsearch-operator/pkg/elasticsearch"
 	"github.com/90poe/elasticsearch-operator/pkg/utils"
 	"github.com/go-logr/logr"
@@ -111,12 +112,20 @@ func (r *ReconcileElasticSearchTemplate) Reconcile(request reconcile.Request) (_
 		}
 	}()
 
+	// General logic:
+	// 1. If Operation == "" - attempt to create. Set Operation="create". If no Acknowledged, Acknowledged=false
+	// 2. If Operation == "created" && Acknowledged - try to update. Set Operation = "update"
+	// 3. Always set LatestError if error occured
+
 	// deletion logic
 	if !instance.GetDeletionTimestamp().IsZero() {
-		if r.shouldDeleteTemplate(instance, reqLogger) && instance.Status.Succeeded {
-			err = r.es.DeleteTemplate(instance.Spec.Name, reqLogger)
+		if r.shouldDeleteTemplate(instance, reqLogger) && instance.Status.Acknowledged {
+			err = r.es.DeleteTemplate(instance.Spec.Name)
 			if err != nil {
-				return reconcile.Result{}, err
+				log.Error(err, fmt.Sprintf("error deleting '%s' template '%s': %v",
+					instance.Name, instance.Spec.Name, err))
+			} else {
+				log.Info(fmt.Sprintf("successfully deleted ES template %s", instance.Spec.Name))
 			}
 		}
 		instance.SetFinalizers(nil)
@@ -125,24 +134,48 @@ func (r *ReconcileElasticSearchTemplate) Reconcile(request reconcile.Request) (_
 		return reconcile.Result{}, nil
 	}
 
-	// creation logic
-	if !instance.Status.Succeeded {
-		// Create template
-		err = r.es.CreateTemplate(instance, reqLogger)
+	//We called second time on creation event - nothing to do
+	if instance.Status.Operation == consts.ESCreateOperation &&
+		instance.ObjectMeta.Generation == 1 {
+		return reconcile.Result{}, nil
+	}
+
+	switch instance.Status.Operation {
+	case "":
+		// Create Template
+		instance.Status.Name = instance.Spec.Name
+		instance.Status.Operation = consts.ESCreateOperation
+		err = r.es.CreateTemplate(instance)
 		if err != nil {
-			log.Error(err, "can't create template")
+			instance.Status.LatestError = fmt.Sprintf("%v", err)
+			log.Info(instance.Status.LatestError)
 			return reconcile.Result{}, nil
 		}
-		instance.Status.Succeeded = true
-		instance.Status.Name = instance.Spec.Name
-	} else {
-		// Update index
-		err = r.es.UpdateTemplate(instance, reqLogger)
-		if err != nil {
-			log.Error(err, "can't update template")
+		instance.Status.Acknowledged = true
+		log.Info(fmt.Sprintf("successfully created ES template %s", instance.Spec.Name))
+	case consts.ESCreateOperation, consts.ESUpdateOperation:
+		// Update template
+		if instance.Status.Operation == consts.ESCreateOperation &&
+			!instance.Status.Acknowledged {
+			//Create operation was unsuccessful - ignore update
+			log.Info(fmt.Sprintf("trying to update template '%s' which failed to create - ignoring",
+				instance.Spec.Name))
 			return reconcile.Result{}, nil
+		}
+		instance.Status.LatestError = ""
+		instance.Status.Operation = consts.ESUpdateOperation
+		msg, err := r.es.UpdateTemplate(instance)
+		if err != nil {
+			instance.Status.Acknowledged = false
+			instance.Status.LatestError = fmt.Sprintf("%v", err)
+			log.Info(instance.Status.LatestError)
+			return reconcile.Result{}, nil
+		}
+		if len(msg) != 0 {
+			log.Info(msg)
 		}
 	}
+
 	err = r.addFinalizer(instance, reqLogger)
 	if err != nil {
 		return r.requeue(instance, err)
@@ -162,13 +195,17 @@ func (r *ReconcileElasticSearchTemplate) addFinalizer(m *xov1alpha1.ElasticSearc
 }
 
 func (r *ReconcileElasticSearchTemplate) requeue(cr *xov1alpha1.ElasticSearchTemplate, reason error) (reconcile.Result, error) {
-	cr.Status.Succeeded = false
+	cr.Status.Acknowledged = false
 	return reconcile.Result{}, reason
 }
 
 func (r *ReconcileElasticSearchTemplate) shouldDeleteTemplate(cr *xov1alpha1.ElasticSearchTemplate, logger logr.Logger) bool {
 	// If DropOnDelete is false we don't need to check any further
 	if !cr.Spec.DropOnDelete {
+		return false
+	}
+	if !cr.Status.Acknowledged {
+		// If we don't have aknowledge from Create/Update - we don't delete
 		return false
 	}
 	// Get a list of all ES Indexes

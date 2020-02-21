@@ -1,4 +1,4 @@
-.PHONY: all build deps lint check-goos
+.PHONY: all build build-local unit-test deps lint check-goos
 SHELL=/bin/bash
 
 version=$(shell cat version/version.go | grep Version | cut -d'"' -f2)
@@ -19,16 +19,24 @@ ifdef os
   OSNAME=$(os)
 endif
 
-all: unit_test lint build
+all: unit-test lint build
 
-build: unit_test
+build-local: deps unit-test
 	operator-sdk build --go-build-args '-ldflags=-s -ldflags=-w' xo.90poe.io/elasticsearch-operator:$(version)
 
+build:
+	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -mod=vendor -ldflags="-s -w" -a -o ./artifacts/manager ./cmd/manager
+	mv ./artifacts/manager ./artifacts/manager-unpacked
+	upx -q -o ./artifacts/manager ./artifacts/manager-unpacked
+	rm -rf ./artifacts/manager-unpacked
+
 deps:
+	operator-sdk generate crds
+	operator-sdk generate k8s
 	go mod vendor
 
-unit_test:
-	go test -v -mod=vendor -cover $$(go list ./...)
+unit-test:
+	go test -v -parallel=2 -mod=vendor -cover $$(go list ./...)
 
 lint:
 	# (cd /tmp/; go get -u github.com/golangci/golangci-lint/...)

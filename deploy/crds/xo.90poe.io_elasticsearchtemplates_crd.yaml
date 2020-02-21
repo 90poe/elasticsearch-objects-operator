@@ -480,12 +480,24 @@ spec:
         status:
           description: ElasticSearchTemplateStatus defines the observed state of ElasticSearchTemplate
           properties:
-            succeeded:
+            acknowledged:
+              description: Acknowledgment of last operation success from ES cluster.
+                If false - last operation failed or was not performed
               type: boolean
+            latest_error:
+              description: LatestError would hold error, if last operation was un-successful,
+                or it would be empty otherways
+              type: string
+            operation:
+              description: 'Last operation attempted on ES template. Can be: create
+                or udpate'
+              pattern: ^(create|update)$
+              type: string
             template_name:
               type: string
           required:
-          - succeeded
+          - operation
+          - template_name
           type: object
       type: object
   version: v1alpha1

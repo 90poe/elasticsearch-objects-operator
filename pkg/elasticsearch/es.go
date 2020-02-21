@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-logr/logr"
 	"github.com/olivere/elastic/v7"
+	"github.com/prometheus/common/log"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
 )
@@ -50,6 +50,17 @@ func URL(esURL string) Option {
 	}
 }
 
+//ESclient is option function to set ES cluster object - mainly for mocking
+func ESclient(es *elastic.Client) Option {
+	return func(c *Client) error {
+		if es == nil {
+			return fmt.Errorf("es cluster must not be nil")
+		}
+		c.es = es
+		return nil
+	}
+}
+
 //New would create ES Client
 func New(options ...Option) (*Client, error) {
 	c := Client{}
@@ -60,6 +71,10 @@ func New(options ...Option) (*Client, error) {
 			return nil, fmt.Errorf("can't make new ES Client: %w", err)
 		}
 	}
+	if c.es != nil {
+		return &c, nil
+	}
+	//ES cluster client not provided - create one
 	c.es, err = elastic.NewClient(
 		elastic.SetURL(c.esURL),
 		elastic.SetSniff(false),
@@ -71,7 +86,7 @@ func New(options ...Option) (*Client, error) {
 }
 
 //CreateIndex is going to create ES index with index name
-func (c *Client) CreateIndex(index *xov1alpha1.ElasticSearchIndex, log logr.Logger) error {
+func (c *Client) CreateIndex(index *xov1alpha1.ElasticSearchIndex) error {
 	sett := Settings{
 		Index: index.Spec.Settings,
 	}
@@ -93,24 +108,30 @@ func (c *Client) CreateIndex(index *xov1alpha1.ElasticSearchIndex, log logr.Logg
 		// Not acknowledged
 		return fmt.Errorf("can't acknowledge ES index creation")
 	}
-	log.Info(fmt.Sprintf("successfully created ES index %s", index.Spec.Name))
 	return nil
 }
 
 // UpdateIndex would update index if possible
-func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex, log logr.Logger) error {
+func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex) (string, error) {
+	exists, err := c.doesIndexExists(modified.Spec.Name)
+	if err != nil {
+		return "", fmt.Errorf("can't update index: %w", err)
+	}
+	if !exists {
+		//Index doesn't exists - lets create one
+		return "", c.CreateIndex(modified)
+	}
 	servSettings, err := c.getServerIndexSettings(modified.Spec.Name)
 	if err != nil {
-		return fmt.Errorf("can't get current index settings: %w", err)
+		return "", fmt.Errorf("can't update index: %w", err)
 	}
 	changed, err := diffSettings(&modified.Spec.Settings, servSettings, true)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if !changed {
 		// No changes - nothing to do
-		log.Info(fmt.Sprintf("no changes on index named %s", modified.Spec.Name))
-		return nil
+		return fmt.Sprintf("no changes on index named %s", modified.Spec.Name), nil
 	}
 	newSettings := modified.Spec.Settings.DeepCopy()
 	//Null out Static settings which must not change dynamically
@@ -128,25 +149,23 @@ func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex, log logr.L
 	}
 	modIndex.Mappings, err = addManagedBy2Interface(modified.Spec.Mappings)
 	if err != nil {
-		return fmt.Errorf("can't add managed-by 2 ES index: %w", err)
+		return "", fmt.Errorf("can't add managed-by 2 ES index: %w", err)
 	}
 	// Null out static settings
 
 	updateIndex, err := c.es.IndexPutSettings(modified.Spec.Name).BodyJson(modIndex).Do(context.Background())
 	if err != nil {
-		return fmt.Errorf("can't update ES index: %w", err)
+		return "", fmt.Errorf("can't update ES index: %w", err)
 	}
 	if !updateIndex.Acknowledged {
 		// Not acknowledged
-		return fmt.Errorf("can't acknowledge ES index update")
+		return "", fmt.Errorf("can't acknowledge ES index update")
 	}
-	log.Info(fmt.Sprintf("successfully updated ES index %s", modified.Spec.Name))
-
-	return nil
+	return fmt.Sprintf("successfully updated ES index %s", modified.Spec.Name), nil
 }
 
 // DeleteIndex would delete ES index
-func (c *Client) DeleteIndex(name string, log logr.Logger) error {
+func (c *Client) DeleteIndex(name string) error {
 	delIndex, err := c.es.DeleteIndex(name).Do(context.Background())
 	if err != nil {
 		return fmt.Errorf("can't delete index %s: %w", name, err)
@@ -155,8 +174,30 @@ func (c *Client) DeleteIndex(name string, log logr.Logger) error {
 		// Not acknowledged
 		return fmt.Errorf("can't acknowledge ES index deletion")
 	}
-	log.Info(fmt.Sprintf("successfully deleted ES index %s", name))
 	return nil
+}
+
+// doesIndexExists would check if index with such name exists
+func (c *Client) doesIndexExists(indexName string) (bool, error) {
+	indicesCatServ := elastic.NewCatIndicesService(c.es)
+	indices, err := indicesCatServ.Index(indexName).Pretty(false).Do(context.Background())
+	if err != nil {
+		v7err, ok := err.(*elastic.Error)
+		if !ok {
+			return false, fmt.Errorf("can't get index: %w", err)
+		}
+		if v7err.Status == 404 {
+			//Index not found
+			return false, nil
+		}
+		return false, fmt.Errorf("can't get index: %w", err)
+	}
+	for _, index := range indices {
+		if index.Index == indexName {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 // getServerIndexSettings would get settings from ES cluster for index with name indexName
@@ -164,7 +205,7 @@ func (c *Client) getServerIndexSettings(indexName string) (map[string]interface{
 	service := elastic.NewIndicesGetSettingsService(c.es)
 	settings, err := service.Index(indexName).Do(context.Background())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("can't get settings: %w", err)
 	}
 	indexSettings, ok := settings[indexName]
 	if !ok {
@@ -174,7 +215,7 @@ func (c *Client) getServerIndexSettings(indexName string) (map[string]interface{
 }
 
 //CreateTemplate is going to create ES template with template
-func (c *Client) CreateTemplate(template *xov1alpha1.ElasticSearchTemplate, log logr.Logger) error {
+func (c *Client) CreateTemplate(template *xov1alpha1.ElasticSearchTemplate) error {
 	// Create a new template.
 	sett := Settings{
 		Index: template.Spec.Settings,
@@ -201,20 +242,19 @@ func (c *Client) CreateTemplate(template *xov1alpha1.ElasticSearchTemplate, log 
 
 //UpdateTemplate is going to update ES template with template
 //nolint
-func (c *Client) UpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate, log logr.Logger) error {
+func (c *Client) UpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate) (string, error) {
 	// Create a new template.
 	servSettings, err := c.getServerTemplateSettings(modified.Spec.Name)
 	if err != nil {
-		return fmt.Errorf("can't get current template settings: %w", err)
+		return "", fmt.Errorf("can't get current template settings: %w", err)
 	}
 	changed, err := diffSettings(&modified.Spec.Settings, servSettings, false)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if !changed {
 		// No changes - nothing to do
-		log.Info(fmt.Sprintf("no changes on template named %s", modified.Spec.Name))
-		return nil
+		return fmt.Sprintf("no changes on template named %s", modified.Spec.Name), nil
 	}
 	sett := Settings{
 		Index: modified.Spec.Settings,
@@ -227,16 +267,14 @@ func (c *Client) UpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate, log 
 	}
 	modIndex.Mappings, err = addManagedBy2Interface(modified.Spec.Mappings)
 	if err != nil {
-		return fmt.Errorf("can't add managed-by 2 ES index: %w", err)
+		return "", fmt.Errorf("can't add managed-by 2 ES index: %w", err)
 	}
 	// Update template
 	err = c.createOrUpdateTemplate(modified.Spec.Name, modIndex)
 	if err != nil {
-		return err
+		return "", err
 	}
-	log.Info(fmt.Sprintf("successfully updated ES template %s", modified.Spec.Name))
-
-	return nil
+	return fmt.Sprintf("successfully updated ES template %s", modified.Spec.Name), nil
 }
 
 func (c *Client) createOrUpdateTemplate(name string, settings interface{}) error {
@@ -266,7 +304,7 @@ func (c *Client) getServerTemplateSettings(tmplName string) (map[string]interfac
 }
 
 // DeleteTemplate would delete ES template
-func (c *Client) DeleteTemplate(name string, log logr.Logger) error {
+func (c *Client) DeleteTemplate(name string) error {
 	delTemplate, err := c.es.IndexDeleteTemplate(name).Do(context.Background())
 	if err != nil {
 		return fmt.Errorf("can't delete template %s: %w", name, err)
@@ -275,6 +313,5 @@ func (c *Client) DeleteTemplate(name string, log logr.Logger) error {
 		// Not acknowledged
 		return fmt.Errorf("can't acknowledge ES template deletion")
 	}
-	log.Info(fmt.Sprintf("successfully deleted ES template %s", name))
 	return nil
 }

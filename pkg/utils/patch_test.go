@@ -34,7 +34,8 @@ func TestPatchUtilShouldPatchIfThereIsDifference(t *testing.T) {
 	// Create modified postgres
 	modESIndex := esIndex.DeepCopy()
 	modESIndex.Spec.Settings.NumOfReplicas = 10
-	modESIndex.Status.Succeeded = true
+	modESIndex.Status.Acknowledged = true
+	modESIndex.Status.Operation = "create"
 
 	// Create runtime scheme
 	s := scheme.Scheme
@@ -60,8 +61,12 @@ func TestPatchUtilShouldPatchIfThereIsDifference(t *testing.T) {
 		t.Fatalf("found ESIndex is not identical to modified ESIndex: NumOfReplicas == %d, expected %d",
 			foundESindex.Spec.Settings.NumOfReplicas, modESIndex.Spec.Settings.NumOfReplicas)
 	}
-	if foundESindex.Status.Succeeded != modESIndex.Status.Succeeded {
+	if foundESindex.Status.Acknowledged != modESIndex.Status.Acknowledged {
 		t.Fatalf("found ESIndex is not identical to modified ESIndex: Succeeded == %s, expected %s",
-			strconv.FormatBool(foundESindex.Status.Succeeded), strconv.FormatBool(modESIndex.Status.Succeeded))
+			strconv.FormatBool(foundESindex.Status.Acknowledged), strconv.FormatBool(modESIndex.Status.Acknowledged))
+	}
+	if foundESindex.Status.Operation != modESIndex.Status.Operation {
+		t.Fatalf("found ESIndex is not identical to modified ESIndex: Operation == %s, expected %s",
+			foundESindex.Status.Operation, modESIndex.Status.Operation)
 	}
 }

@@ -231,8 +231,16 @@ type ElasticSearchIndexSpec struct {
 // ElasticSearchIndexStatus defines the observed state of ElasticSearchIndex
 // +k8s:openapi-gen=true
 type ElasticSearchIndexStatus struct {
-	Succeeded bool `json:"succeeded"`
+	// Acknowledgment of last operation success from ES cluster. If false - last operation failed or was not performed
 	// +optional
+	Acknowledged bool `json:"acknowledged,omitempty"`
+	// Last operation attempted on ES index. Can be: create or udpate
+	// +kubebuilder:validation:Pattern=`^(create|update)$`
+	Operation string `json:"operation"`
+	// LatestError would hold error, if last operation was un-successful, or it would be empty otherways
+	// +optional
+	LatestError string `json:"latest_error,omitempty"`
+	// Name of index
 	Name string `json:"index_name"`
 
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster

@@ -3,6 +3,8 @@ package consts
 const (
 	// ESIndexNameRegexp according to https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html
 	ESIndexNameRegexp = `^[^-_+A-Z][^A-Z\\\/\*\?"\<\> ,|#]{1,254}$`
+	ESCreateOperation = "create"
+	ESUpdateOperation = "update"
 )
 
 // ESStaticSettings is map which has ES settings static part
