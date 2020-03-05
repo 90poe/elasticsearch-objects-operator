@@ -7,7 +7,7 @@ ElasticSearch operator is Kubernetes operator, which manages ES cluster indexes 
 Operator has folowing logic while managing ES indexes:
 1. Create logic:
 
-    1.1. If index alredy exists or there is an error in index settings, operator would report error in `status.latest_error` and would not perform any other operations upon that index. Only thing you could perform is to start from scratch: delete CRD, fix issues and try again.
+    1.1. If index already exists or there is an error in index settings, operator would report error in `status.latest_error` and would not perform any other operations upon that index. Only thing you could perform is to start from scratch: delete CRD, fix issues and try again.
 
     1.2. Upon index successful creation you would be able to manage that index via CRD.
 
@@ -48,3 +48,5 @@ Operator has folowing logic while managing ES templates:
     3.2. If CRD doesn't have `drop_on_delete` flag set, we would only delete CRD, but not ES template itself.
 
     3.3. If CRD has `drop_on_delete` flag set, we would also try to delete template. If error occures, it would be reported to operator logs.
+
+Documentation is available [here](https://elasticsearch-operator.readthedocs.io/en/latest/).
