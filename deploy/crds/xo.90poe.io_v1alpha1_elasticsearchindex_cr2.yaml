@@ -1,0 +1,31 @@
+apiVersion: xo.90poe.io/v1alpha1
+kind: ElasticSearchIndex
+metadata:
+  name: example-elasticsearchindex2
+  namespace: "90"
+spec:
+  name: dev_test_test2
+  drop_on_delete: true
+  settings:
+    number_of_shards: 55
+    shards:
+      check_on_startup: "false"
+    codec: "default"
+    number_of_replicas: 3
+  mappings: |
+    {
+      "dynamic": false,
+      "_source": {
+        "enabled": true
+      },
+      "properties": {
+        "isRead": {
+          "type": "boolean",
+          "index": true
+        },
+        "createdAt": {
+          "type": "date",
+          "index": true
+        }
+      }
+    }

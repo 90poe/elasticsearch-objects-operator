@@ -194,7 +194,7 @@ func (r *ReconcileElasticSearchIndex) Reconcile(request reconcile.Request) (_ re
 func (r *ReconcileElasticSearchIndex) addFinalizer(m *xov1alpha1.ElasticSearchIndex, reqLogger logr.Logger) error {
 	if len(m.GetFinalizers()) < 1 && m.GetDeletionTimestamp() == nil {
 		reqLogger.Info("adding Finalizer for ESIndex")
-		m.SetFinalizers([]string{"finalizer.elasticsearchindex.90poe.io"})
+		m.SetFinalizers([]string{"finalizer.elasticsearchindex.xo.90poe.io"})
 	}
 	return nil
 }

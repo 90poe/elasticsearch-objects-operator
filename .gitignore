@@ -13,6 +13,7 @@ cmd/__debug*
 auto-save-list
 tramp
 .\#*
+bin
 # Org-mode
 .org-id-locations
 *_archive

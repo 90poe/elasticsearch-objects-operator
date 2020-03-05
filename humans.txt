@@ -1,0 +1,32 @@
+
+
+___________.__                   __  .__         _________                           .__                                                 __
+\_   _____/|  | _____    _______/  |_|__| ____  /   _____/ ____ _____ _______   ____ |  |__             ____ ______   ________________ _/  |_  ___________
+ |    __)_ |  | \__  \  /  ___/\   __\  |/ ___\ \_____  \_/ __ \\__  \\_  __ \_/ ___\|  |  \   ______  /  _ \\____ \_/ __ \_  __ \__  \\   __\/  _ \_  __ \
+ |        \|  |__/ __ \_\___ \  |  | |  \  \___ /        \  ___/ / __ \|  | \/\  \___|   Y  \ /_____/ (  <_> )  |_> >  ___/|  | \// __ \|  | (  <_> )  | \/
+/_______  /|____(____  /____  > |__| |__|\___  >_______  /\___  >____  /__|    \___  >___|  /          \____/|   __/ \___  >__|  (____  /__|  \____/|__|
+        \/           \/     \/               \/        \/     \/     \/            \/     \/                 |__|        \/           \/
+
+
+
+
+/* Humans */
+Sarunas     @sarunask     maintainer
+
+/* Organizations */
+90poe       https://www.openocean.studio/
+
+/* Thanks */
+Thanks to 90poe for giving birth to this project and allowing it to be open sourced.
+
+Also, thanks to all contributors and users (assuming there are more) of elasticsearch-operator.
+
+/* Site */
+
+Last update: -
+Language: English
+Doctype: HTML5
+IDE: VIM/VsCode/Atom
+Generator: Jekyll (Ruby)
+SCM: Git
+Hosting: GitHub

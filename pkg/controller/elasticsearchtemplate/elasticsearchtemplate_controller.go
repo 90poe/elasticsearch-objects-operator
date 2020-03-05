@@ -189,7 +189,7 @@ func (r *ReconcileElasticSearchTemplate) Reconcile(request reconcile.Request) (_
 func (r *ReconcileElasticSearchTemplate) addFinalizer(m *xov1alpha1.ElasticSearchTemplate, reqLogger logr.Logger) error {
 	if len(m.GetFinalizers()) < 1 && m.GetDeletionTimestamp() == nil {
 		reqLogger.Info("adding Finalizer for EStemplate")
-		m.SetFinalizers([]string{"finalizer.elasticsearchtemplate.90poe.io"})
+		m.SetFinalizers([]string{"finalizer.elasticsearchtemplate.xo.90poe.io"})
 	}
 	return nil
 }
