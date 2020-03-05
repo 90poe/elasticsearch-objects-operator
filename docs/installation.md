@@ -8,8 +8,12 @@ elasticsearch-operator runs on K8S cluster 1.14 and up.
 
 ## Download the binary
 
-The elasticsearch-operator binary can be downloaded from the [DockerHub](https://github.com/90poe/elasticsearch-operator/releases). Its advised that you make the binary available in your PATH.
+The elasticsearch-operator docker image is located at [DockerHub](https://hub.docker.com/repository/docker/90poe/elasticsearch-operators).
 
-## Future work
-
-We'll be supplying an install script and support for various package managers in the future.
+To install it to your K8S cluster:
+1. edit `deploy/secret.yaml` and add URL to your ES cluster
+2. Install using `make` and `kubectl`:
+```
+cd deploy
+make install
+```

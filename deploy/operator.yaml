@@ -2,6 +2,8 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elasticsearch-operator
+  labels:
+    app: elasticsearch-operator
 spec:
   replicas: 1
   selector:
@@ -11,16 +13,22 @@ spec:
     metadata:
       labels:
         name: elasticsearch-operator
+        app: elasticsearch-operator
     spec:
       serviceAccountName: elasticsearch-operator
       containers:
         - name: elasticsearch-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: 90poe/elasticsearch-operator
           command:
           - elasticsearch-operator
           imagePullPolicy: Always
           env:
+            - name: ES_URL
+              valueFrom:
+                secretKeyRef:
+                  name: elasticsearch-operator-secret
+                  key: ES_URL
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:

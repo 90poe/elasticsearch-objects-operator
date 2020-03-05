@@ -86,7 +86,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">elasticsearch-operator installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#download-the-binary">Download the binary</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#future-work">Future work</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
@@ -163,11 +162,16 @@
 </div>
 <div class="section" id="download-the-binary">
 <h2>Download the binary<a class="headerlink" href="#download-the-binary" title="Permalink to this headline">¶</a></h2>
-<p>The elasticsearch-operator binary can be downloaded from the <a class="reference external" href="https://github.com/90poe/elasticsearch-operator/releases">DockerHub</a>. Its advised that you make the binary available in your PATH.</p>
+<p>The elasticsearch-operator docker image is located at <a class="reference external" href="https://hub.docker.com/repository/docker/90poe/elasticsearch-operators">DockerHub</a>.</p>
+<p>To install it to your K8S cluster:</p>
+<ol class="simple">
+<li><p>edit <code class="docutils literal notranslate"><span class="pre">deploy/secret.yaml</span></code> and add URL to your ES cluster</p></li>
+<li><p>Install using <code class="docutils literal notranslate"><span class="pre">make</span></code> and <code class="docutils literal notranslate"><span class="pre">kubectl</span></code>:</p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">deploy</span>
+<span class="n">make</span> <span class="n">install</span>
+</pre></div>
 </div>
-<div class="section" id="future-work">
-<h2>Future work<a class="headerlink" href="#future-work" title="Permalink to this headline">¶</a></h2>
-<p>We’ll be supplying an install script and support for various package managers in the future.</p>
 </div>
 </div>
 
