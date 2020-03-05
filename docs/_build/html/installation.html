@@ -85,10 +85,17 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">elasticsearch-operator installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#download-the-binary">Download the binary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-to-k8s-cluster">Install to K8S cluster</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchindex_crd.html">ElasticSearch Index CRD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchtemplate_crd.html">ElasticSearch Template CRD</a></li>
+</ul>
+<p class="caption"><span class="caption-text">CRD Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchindex_crd.html">ElasticSearch Index CRD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchtemplate_crd.html">ElasticSearch Template CRD</a></li>
 </ul>
 
             
@@ -158,10 +165,15 @@
 <p>The contains details of how to install and uninstall elasticsearch-operator</p>
 <div class="section" id="requirements">
 <h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<p>elasticsearch-operator runs on K8S cluster 1.14 and up.</p>
+<p>elasticsearch-operator runs on K8S cluster 1.14 and up. To install it you would need:</p>
+<ol class="simple">
+<li><p>Admin access to cluster</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kubectl</span></code> which is configured to access your cluster and is in your execution path</p></li>
+<li><p>GNU or *NIX Make which is in your execution path</p></li>
+</ol>
 </div>
-<div class="section" id="download-the-binary">
-<h2>Download the binary<a class="headerlink" href="#download-the-binary" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="install-to-k8s-cluster">
+<h2>Install to K8S cluster<a class="headerlink" href="#install-to-k8s-cluster" title="Permalink to this headline">¶</a></h2>
 <p>The elasticsearch-operator docker image is located at <a class="reference external" href="https://hub.docker.com/repository/docker/90poe/elasticsearch-operators">DockerHub</a>.</p>
 <p>To install it to your K8S cluster:</p>
 <ol class="simple">

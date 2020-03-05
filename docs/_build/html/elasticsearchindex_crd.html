@@ -1,0 +1,497 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ElasticSearch Index CRD &mdash; elasticsearch-operator  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ElasticSearch Template CRD" href="elasticsearchtemplate_crd.html" />
+    <link rel="prev" title="FAQ" href="FAQ.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> elasticsearch-operator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">elasticsearch-operator installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ElasticSearch Index CRD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#spec">Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#esindexsettings">ESIndexSettings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchtemplate_crd.html">ElasticSearch Template CRD</a></li>
+</ul>
+<p class="caption"><span class="caption-text">CRD Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ElasticSearch Index CRD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchtemplate_crd.html">ElasticSearch Template CRD</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">elasticsearch-operator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ElasticSearch Index CRD</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/elasticsearchindex_crd.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="elasticsearch-index-crd">
+<h1>ElasticSearch Index CRD<a class="headerlink" href="#elasticsearch-index-crd" title="Permalink to this headline">¶</a></h1>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">apiVersion</span><span class="p">:</span> <span class="n">xo</span><span class="o">.</span><span class="mi">90</span><span class="n">poe</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">v1alpha1</span>
+<span class="n">kind</span><span class="p">:</span> <span class="n">ElasticSearchIndex</span>
+<span class="n">metadata</span><span class="p">:</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">example</span><span class="o">-</span><span class="n">elasticsearchindex</span>
+  <span class="n">namespace</span><span class="p">:</span> <span class="s2">&quot;90&quot;</span>
+<span class="n">spec</span><span class="p">:</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">dev_test_test</span>
+  <span class="n">drop_on_delete</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">settings</span><span class="p">:</span>
+    <span class="n">number_of_shards</span><span class="p">:</span> <span class="mi">55</span>
+    <span class="n">shards</span><span class="p">:</span>
+      <span class="n">check_on_startup</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span>
+    <span class="n">codec</span><span class="p">:</span> <span class="s2">&quot;default&quot;</span>
+    <span class="n">number_of_replicas</span><span class="p">:</span> <span class="mi">3</span>
+  <span class="n">mappings</span><span class="p">:</span> <span class="o">|</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;dynamic&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;_source&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="n">true</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;isRead&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">true</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;createdAt&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">true</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="spec">
+<h2>Spec<a class="headerlink" href="#spec" title="Permalink to this headline">¶</a></h2>
+<p>Setting are made to be as close as possible to <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/7.x/index-modules.html">ES API</a>.</p>
+<p>You would need to amend <code class="docutils literal notranslate"><span class="pre">spec</span></code> section.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Spec</th>
+<th align="center">Type</th>
+<th align="center">Required</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td align="center">string</td>
+<td align="center">Yes</td>
+<td align="left">Name of ES index</td>
+</tr>
+<tr>
+<td>drop_on_delete</td>
+<td align="center">bool</td>
+<td align="center">No</td>
+<td align="left">Should we drop index if K8S object is deleted, default false</td>
+</tr>
+<tr>
+<td>settings</td>
+<td align="center">ESIndexSettings</td>
+<td align="center">Yes</td>
+<td align="left">See <a href="#ESIndexSettings">ESIndexSettings</a></td>
+</tr>
+<tr>
+<td>mappings</td>
+<td align="center">string</td>
+<td align="center">Yes</td>
+<td align="left">Mappings of ES Index, must be valid JSON</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="esindexsettings">
+<h2>ESIndexSettings<a class="headerlink" href="#esindexsettings" title="Permalink to this headline">¶</a></h2>
+<p><a name="ESIndexSettings"></a></p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Settings</th>
+<th align="center">Type</th>
+<th align="center">Required</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>number_of_shards</td>
+<td align="center">int32</td>
+<td align="center">No</td>
+<td align="left">The number of primary shards that an index should have. Defaults to 1. This setting can only be set at index creation time. It cannot be changed on a closed index. Note: the number of shards are limited to 1024 per index. This limitation is a safety limit to prevent accidental creation of indices that can destabilize a cluster due to resource allocation.</td>
+</tr>
+<tr>
+<td>shard.check_on_startup</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Whether or not shards should be checked for corruption before opening. When corruption is detected, it will prevent the shard from being opened. Accepts: true, false, checksum</td>
+</tr>
+<tr>
+<td>codec</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">The default value compresses stored data with LZ4 compression, but this can be set to best_compression which uses DEFLATE for a higher compression ratio, at the expense of slower stored fields performance. If you are updating the compression type, the new one will be applied after segments are merged. Segment merging can be forced using force merge.</td>
+</tr>
+<tr>
+<td>routing_partition_size</td>
+<td align="center">int32</td>
+<td align="center">No</td>
+<td align="left">The number of shards a custom routing value can go to. Defaults to 1 and can only be set at index creation time. This value must be less than the index.number_of_shards unless the index.number_of_shards value is also 1. See Routing to an index partition for more details about how this setting is used.</td>
+</tr>
+<tr>
+<td>load_fixed_bitset_filters_eagerly</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Indicates whether cached filters are pre-loaded for nested queries. Possible values are true (default) and false.</td>
+</tr>
+<tr>
+<td>hidden</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Indicates whether the index should be hidden by default. Hidden indices are not returned by default when using a wildcard expression. This behavior is controlled per request through the use of the expand_wildcards parameter. Possible values are true and false (default).</td>
+</tr>
+<tr>
+<td>number_of_replicas</td>
+<td align="center">int32</td>
+<td align="center">No</td>
+<td align="left">The number of replicas each primary shard has. Defaults to 1.</td>
+</tr>
+<tr>
+<td>auto_expand_replicas</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Auto-expand the number of replicas based on the number of data nodes in the cluster. Set to a dash delimited lower and upper bound (e.g. 0-5) or use all for the upper bound (e.g. 0-all). Defaults to false (i.e. disabled). Note that the auto-expanded number of replicas only takes allocation filtering rules into account, but ignores any other allocation rules such as shard allocation awareness and total shards per node, and this can lead to the cluster health becoming YELLOW if the applicable rules prevent all the replicas from being allocated.</td>
+</tr>
+<tr>
+<td>search.idle.after</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">How long a shard can not receive a search or get request until it’s considered search idle. (default is 30s)</td>
+</tr>
+<tr>
+<td>refresh_interval</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">How often to perform a refresh operation, which makes recent changes to the index visible to search. Defaults to 1s. Can be set to -1 to disable refresh. If this setting is not explicitly set, shards that haven’t seen search traffic for at least index.search.idle.after seconds will not receive background refreshes until they receive a search request. Searches that hit an idle shard where a refresh is pending will wait for the next background refresh (within 1s). This behavior aims to automatically optimize bulk indexing in the default case when no searches are performed. In order to opt out of this behavior an explicit value of 1s should set as the refresh interval.</td>
+</tr>
+<tr>
+<td>max_result_window</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum value of from + size for searches to this index. Defaults to 10000. Search requests take heap memory and time proportional to from + size and this limits that memory. See Scroll or Search After for a more efficient alternative to raising this.</td>
+</tr>
+<tr>
+<td>max_inner_result_window</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum value of from + size for inner hits definition and top hits aggregations to this index. Defaults to 100. Inner hits and top hits aggregation take heap memory and time proportional to from + size and this limits that memory.</td>
+</tr>
+<tr>
+<td>max_rescore_window</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum value of window_size for rescore requests in searches of this index. Defaults to index.max_result_window which defaults to 10000. Search requests take heap memory and time proportional to max(window_size, from + size) and this limits that memory.</td>
+</tr>
+<tr>
+<td>max_docvalue_fields_search</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum value of window_size for rescore requests in searches of this index. Defaults to index.max_result_window which defaults to 10000. Search requests take heap memory and time proportional to max(window_size, from + size) and this limits that memory.</td>
+</tr>
+<tr>
+<td>max_script_fields</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum number of script_fields that are allowed in a query. Defaults to 32.</td>
+</tr>
+<tr>
+<td>max_ngram_diff</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum allowed difference between min_gram and max_gram for NGramTokenizer and NGramTokenFilter. Defaults to 1.</td>
+</tr>
+<tr>
+<td>max_shingle_diff</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum allowed difference between max_shingle_size and min_shingle_size for ShingleTokenFilter. Defaults to 3.</td>
+</tr>
+<tr>
+<td>blocks.read_only</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Set to true to make the index and index metadata read only, false to allow writes and metadata changes.</td>
+</tr>
+<tr>
+<td>blocks.read_only_allow_delete</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Similar to index.blocks.read_only but also allows deleting the index to free up resources. The disk-based shard allocator may add and remove this block automatically.</td>
+</tr>
+<tr>
+<td>blocks.read</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Set to true to disable read operations against the index.</td>
+</tr>
+<tr>
+<td>blocks.write</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Set to true to disable data write operations against the index. Unlike read_only, this setting does not affect metadata. For instance, you can close an index with a write block, but not an index with a read_only block.</td>
+</tr>
+<tr>
+<td>blocks.metadata</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Set to true to disable index metadata reads and writes.</td>
+</tr>
+<tr>
+<td>max_refresh_listeners</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">Maximum number of refresh listeners available on each shard of the index. These listeners are used to implement refresh=wait_for. The maximum allowed difference between max_shingle_size and min_shingle_size for ShingleTokenFilter. Defaults to 3.</td>
+</tr>
+<tr>
+<td>analyze.max_token_count</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum number of tokens that can be produced using _analyze API. Defaults to 10000.</td>
+</tr>
+<tr>
+<td>highlight.max_analyzed_offset</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum number of characters that will be analyzed for a highlight request. This setting is only applicable when highlighting is requested on a text that was indexed without offsets or term vectors. Defaults to 1000000.</td>
+</tr>
+<tr>
+<td>max_terms_count</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum number of terms that can be used in Terms Query. Defaults to 65536.</td>
+</tr>
+<tr>
+<td>max_regex_length</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">The maximum length of regex that can be used in Regexp Query. Defaults to 1000.</td>
+</tr>
+<tr>
+<td>routing.allocation.enable</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">Controls shard allocation for this index. It can be set to: all (default) - Allows shard allocation for all shards. primaries - Allows shard allocation only for primary shards. new_primaries - Allows shard allocation only for newly-created primary shards. none - No shard allocation is allowed.</td>
+</tr>
+<tr>
+<td>routing.rebalance.enable</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">// Enables shard rebalancing for this index. It can be set to: all (default) - Allows shard rebalancing for all shards. primaries - Allows shard rebalancing only for primary shards. replicas - Allows shard rebalancing only for replica shards. none - No shard rebalancing is allowed.</td>
+</tr>
+<tr>
+<td>gc_deletes</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">The length of time that a deleted document’s version number remains available for further versioned operations. Defaults to 60s.</td>
+</tr>
+<tr>
+<td>default_pipeline</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">The default ingest node pipeline for this index. Index requests will fail if the default pipeline is set and the pipeline does not exist. The default may be overridden using the pipeline parameter. The special pipeline name _none indicates no ingest pipeline should be run.</td>
+</tr>
+<tr>
+<td>final_pipeline</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">The final ingest node pipeline for this index. Index requests will fail if the final pipeline is set and the pipeline does not exist. The final pipeline always runs after the request pipeline (if specified) and the default pipeline (if it exists). The special pipeline name _none indicates no ingest pipeline will run.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="elasticsearchtemplate_crd.html" class="btn btn-neutral float-right" title="ElasticSearch Template CRD" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="FAQ.html" class="btn btn-neutral float-left" title="FAQ" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, 90poe &amp; elasticsearch-operator development tean
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

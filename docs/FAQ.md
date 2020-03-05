@@ -1,3 +1,3 @@
 # FAQ
 
-Any questions realted to connecttl:
+Any questions realted to elasticsearch-operator:

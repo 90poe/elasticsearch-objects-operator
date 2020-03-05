@@ -1,10 +1,10 @@
 .. elasticsearch-operator documentation master file, created by
-   sphinx-quickstart on Fri Aug 23 09:43:58 2019.
+   sphinx-quickstart on Thursday 5 12:57:00 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
 Welcome to elasticsearch-operator's documentation!
-=====================================
+============================================================================
 
 .. toctree::
    :maxdepth: 2
@@ -12,15 +12,16 @@ Welcome to elasticsearch-operator's documentation!
 
    installation
    FAQ
+   elasticsearchindex_crd
+   elasticsearchtemplate_crd
 
 .. toctree::
-   :caption: CLI Reference
+   :caption: CRD Reference
    :titlesonly:
    :maxdepth: 0
 
-   cli/index
-
-
+   elasticsearchindex_crd
+   elasticsearchtemplate_crd
 
 
 Indices and tables

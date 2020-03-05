@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ElasticSearch Template CRD &mdash; elasticsearch-operator  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ElasticSearch Index CRD" href="elasticsearchindex_crd.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> elasticsearch-operator
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">elasticsearch-operator installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="FAQ.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchindex_crd.html">ElasticSearch Index CRD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ElasticSearch Template CRD</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#spec">Spec</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#esalias">ESAlias</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">CRD Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="elasticsearchindex_crd.html">ElasticSearch Index CRD</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ElasticSearch Template CRD</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">elasticsearch-operator</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>ElasticSearch Template CRD</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/elasticsearchtemplate_crd.md.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="elasticsearch-template-crd">
+<h1>ElasticSearch Template CRD<a class="headerlink" href="#elasticsearch-template-crd" title="Permalink to this headline">¶</a></h1>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">apiVersion</span><span class="p">:</span> <span class="n">xo</span><span class="o">.</span><span class="mi">90</span><span class="n">poe</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">v1alpha1</span>
+<span class="n">kind</span><span class="p">:</span> <span class="n">ElasticSearchTemplate</span>
+<span class="n">metadata</span><span class="p">:</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">example</span><span class="o">-</span><span class="n">elasticsearchtemplate</span>
+  <span class="n">namespace</span><span class="p">:</span> <span class="n">zm</span>
+<span class="n">spec</span><span class="p">:</span>
+  <span class="n">name</span><span class="p">:</span> <span class="n">dev_test_test_tmpl</span>
+  <span class="n">drop_on_delete</span><span class="p">:</span> <span class="n">true</span>
+  <span class="n">index_patterns</span><span class="p">:</span>
+  <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather_*&quot;</span>
+  <span class="n">aliases</span><span class="p">:</span>
+    <span class="n">add</span><span class="p">:</span>
+      <span class="n">indices</span><span class="p">:</span>
+      <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather_1&quot;</span>
+      <span class="n">aliases</span><span class="p">:</span>
+      <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather&quot;</span>
+  <span class="n">settings</span><span class="p">:</span>
+    <span class="n">number_of_shards</span><span class="p">:</span> <span class="mi">55</span>
+    <span class="n">shards</span><span class="p">:</span>
+      <span class="n">check_on_startup</span><span class="p">:</span> <span class="s2">&quot;false&quot;</span>
+    <span class="n">codec</span><span class="p">:</span> <span class="s2">&quot;default&quot;</span>
+    <span class="n">number_of_replicas</span><span class="p">:</span> <span class="mi">3</span>
+  <span class="n">mappings</span><span class="p">:</span> <span class="o">|</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;dynamic&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+      <span class="s2">&quot;_source&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;enabled&quot;</span><span class="p">:</span> <span class="n">true</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;isRead&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;boolean&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">true</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;createdAt&quot;</span><span class="p">:</span> <span class="p">{</span>
+          <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;date&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">true</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="spec">
+<h2>Spec<a class="headerlink" href="#spec" title="Permalink to this headline">¶</a></h2>
+<p>Setting are made to be as close as possible to <a class="reference external" href="https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-templates.html">ES API</a>.</p>
+<p>You would need to amend <code class="docutils literal notranslate"><span class="pre">spec</span></code> section.</p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Settings</th>
+<th align="center">Type</th>
+<th align="center">Required</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td align="center">string</td>
+<td align="center">Yes</td>
+<td align="left">Name of ES template</td>
+</tr>
+<tr>
+<td>drop_on_delete</td>
+<td align="center">bool</td>
+<td align="center">No</td>
+<td align="left">Should we drop index if K8S object is deleted, default false</td>
+</tr>
+<tr>
+<td>index_patterns</td>
+<td align="center">[]string</td>
+<td align="center">Yes</td>
+<td align="left">Array of wildcard expressions used to match the names of indices during creation.</td>
+</tr>
+<tr>
+<td>aliases.add</td>
+<td align="center">ESAlias</td>
+<td align="center">No</td>
+<td align="left">See <a href="#ESAlias">ESAlias</a></td>
+</tr>
+<tr>
+<td>aliases.remove</td>
+<td align="center">ESAlias</td>
+<td align="center">No</td>
+<td align="left">See <a href="#ESAlias">ESAlias</a></td>
+</tr>
+<tr>
+<td>aliases.remove_index</td>
+<td align="center">ESAlias</td>
+<td align="center">No</td>
+<td align="left">See <a href="#ESAlias">ESAlias</a></td>
+</tr>
+<tr>
+<td>settings</td>
+<td align="center">ESIndexSettings</td>
+<td align="center">No</td>
+<td align="left">See <a href="elasticsearchindex_crd.html#ESIndexSettings">ESIndexSettings</a></td>
+</tr>
+<tr>
+<td>mappings</td>
+<td align="center">string</td>
+<td align="center">Yes</td>
+<td align="left">Mappings of ES Index, must be valid JSON</td>
+</tr>
+<tr>
+<td>version</td>
+<td align="center">int64</td>
+<td align="center">No</td>
+<td align="left">Version number used to manage index templates externally. This number is not automatically generated by Elasticsearch.</td>
+</tr>
+</tbody>
+</table></div>
+<div class="section" id="esalias">
+<h2>ESAlias<a class="headerlink" href="#esalias" title="Permalink to this headline">¶</a></h2>
+<p><a name="ESAlias"></a></p>
+<table border="1" class="docutils">
+<thead>
+<tr>
+<th>Settings</th>
+<th align="center">Type</th>
+<th align="center">Required</th>
+<th align="left">Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>indices</td>
+<td align="center">[]string</td>
+<td align="center">No</td>
+<td align="left">(Array) Array of index names used to perform the action. If the index parameter is not specified, this parameter is required.</td>
+</tr>
+<tr>
+<td>aliases</td>
+<td align="center">[]string</td>
+<td align="center">No</td>
+<td align="left">(String) Comma-separated list or wildcard expression of index alias names to add, remove, or delete. If the alias parameter is not specified, this parameter is required for the add or remove action.</td>
+</tr>
+<tr>
+<td>filter</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">(Optional, query object) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.</td>
+</tr>
+<tr>
+<td>is_write_index</td>
+<td align="center">bool</td>
+<td align="center">No</td>
+<td align="left">(Optional, boolean) If true, assigns the index as an alias’s write index. Defaults to false.</td>
+</tr>
+<tr>
+<td>routing</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">(Optional, string) Custom routing value used to route operations to a specific shard.</td>
+</tr>
+<tr>
+<td>index_routing</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">(Optional, string) Custom routing value used for the alias’s indexing operations.</td>
+</tr>
+<tr>
+<td>search_routing</td>
+<td align="center">string</td>
+<td align="center">No</td>
+<td align="left">(Optional, string) Custom routing value used for the alias’s search operations.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="elasticsearchindex_crd.html" class="btn btn-neutral float-left" title="ElasticSearch Index CRD" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, 90poe &amp; elasticsearch-operator development tean
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
