@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
 
 type TestValueSettings struct {
@@ -198,11 +198,11 @@ func TestAddManagedBy2Interface(t *testing.T) {
 	tests := []TestAddManagedBy2InterfaceSettings{
 		{
 			before: "{\"index\": {\"number_of_shards\": \"55\"}}",
-			after:  "{\"index\": {\"number_of_shards\": \"55\"}, \"_meta\": {\"managed-by\":\"elasticsearch-operator.xo.90poe.io\"}}",
+			after:  "{\"index\": {\"number_of_shards\": \"55\"}, \"_meta\": {\"managed-by\":\"elasticsearch-objects-operator.xo.90poe.io\"}}",
 		},
 		{
 			before: "{\"index\": {\"number_of_shards\": \"55\"}, \"_meta\": {\"managed-by\":\"xo.90poe.io\"}}",
-			after:  "{\"index\": {\"number_of_shards\": \"55\"}, \"_meta\": {\"managed-by\":\"elasticsearch-operator.xo.90poe.io\"}}",
+			after:  "{\"index\": {\"number_of_shards\": \"55\"}, \"_meta\": {\"managed-by\":\"elasticsearch-objects-operator.xo.90poe.io\"}}",
 		},
 		{
 			before: "{[]]}",

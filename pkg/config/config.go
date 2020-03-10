@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/90poe/elasticsearch-operator/pkg/utils"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/utils"
 	"sync"
 )
 

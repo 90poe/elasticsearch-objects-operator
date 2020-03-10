@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'elasticsearch-operator'
-copyright = '2020, 90poe & elasticsearch-operator development tean'
-author = 'elasticsearch-operator development team'
+project = 'elasticsearch-objects-operator'
+copyright = '2020, 90poe & elasticsearch-objects-operator development tean'
+author = 'elasticsearch-objects-operator development team'
 
 
 # -- General configuration ---------------------------------------------------
@@ -64,12 +64,12 @@ master_doc = 'index'
 pygments_style = 'sphinx'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'elasticsearch-operatordoc'
+htmlhelp_basename = 'elasticsearch-objects-operatordoc'
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'elasticsearch-operator', 'elasticsearch-operator Documentation',
+    (master_doc, 'elasticsearch-objects-operator', 'elasticsearch-objects-operator Documentation',
      [author], 1)
 ]
 
@@ -77,8 +77,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'elasticsearch-operator', 'elasticsearch-operator Documentation',
-     author, 'elasticsearch-operator', 'One line description of project.',
+    (master_doc, 'elasticsearch-objects-operator', 'elasticsearch-objects-operator Documentation',
+     author, 'elasticsearch-objects-operator', 'One line description of project.',
      'Miscellaneous'),
 ]
 

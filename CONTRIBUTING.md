@@ -1,9 +1,9 @@
-# Contributing to elasticsearch-operator
+# Contributing to elasticsearch-objects-operator
 
-Firstly, thanks for considering contributing to *elasticsearch-operator*. To make it a really
+Firstly, thanks for considering contributing to *elasticsearch-objects-operator*. To make it a really
 great tool we need your help.
 
-*elasticsearch-operator* is [Apache 2.0 licenced](LICENSE) and accepts contributions via GitHub
+*elasticsearch-objects-operator* is [Apache 2.0 licenced](LICENSE) and accepts contributions via GitHub
 pull requests. There are many ways to contribute, from writing tutorials or blog posts,
 improving the documentation, submitting bug reports and feature requests or writing code.
 
@@ -43,7 +43,7 @@ This project is written in Go and uses Operator SDK. To be able to contribute yo
 3. Fork this repository and clone it by running:
 
 ```bash
-git clone git@github.com:<yourusername>/elasticsearch-operator.git
+git clone git@github.com:<yourusername>/elasticsearch-objects-operator.git
 ```
 
 > As the project uses modules its recommeneded that you NOT clone under the `GOPATH`.
@@ -60,11 +60,11 @@ make build-local
 
 #### 3. Find a feature to work on
 
-- Look at the existing [issues](https://github.com/90poe/elasticsearch-operator/issues) to see if there is anything
+- Look at the existing [issues](https://github.com/90poe/elasticsearch-objects-operator/issues) to see if there is anything
 you would like to work on. If don't see anything then feel free to create your own feature request.
 
 - If you are a new contributor then take a look at the issues marked
-with [good first issue](https://github.com/90poe/elasticsearch-operator/labels/good%20first%20issue).
+with [good first issue](https://github.com/90poe/elasticsearch-objects-operator/labels/good%20first%20issue).
 
 - Make your code changes within a feature branch:
 

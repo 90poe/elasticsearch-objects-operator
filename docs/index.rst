@@ -1,9 +1,9 @@
-.. elasticsearch-operator documentation master file, created by
+.. elasticsearch-objects-operator documentation master file, created by
    sphinx-quickstart on Thursday 5 12:57:00 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to elasticsearch-operator's documentation!
+Welcome to elasticsearch-objects-operator's documentation!
 ============================================================================
 
 .. toctree::

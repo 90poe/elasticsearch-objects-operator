@@ -1,8 +1,9 @@
-module github.com/90poe/elasticsearch-operator
+module github.com/90poe/elasticsearch-objects-operator
 
 go 1.13
 
 require (
+	github.com/90poe/elasticsearch-objects-operator v0.0.0-20200305151732-33d23e6221ec
 	github.com/go-logr/logr v0.1.0
 	github.com/movetokube/postgres-operator v0.0.0-20200125172242-468519ccfed0
 	github.com/olivere/elastic/v7 v7.0.10

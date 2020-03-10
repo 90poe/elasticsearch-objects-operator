@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/90poe/elasticsearch-operator/pkg/consts"
-	"github.com/90poe/elasticsearch-operator/pkg/elasticsearch"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/consts"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/elasticsearch"
 
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

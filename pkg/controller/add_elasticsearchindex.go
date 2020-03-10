@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/90poe/elasticsearch-operator/pkg/controller/elasticsearchindex"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/controller/elasticsearchindex"
 )
 
 func init() {

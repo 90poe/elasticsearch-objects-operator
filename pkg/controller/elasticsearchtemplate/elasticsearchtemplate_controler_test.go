@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/90poe/elasticsearch-operator/pkg/consts"
-	"github.com/90poe/elasticsearch-operator/pkg/elasticsearch"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/consts"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/elasticsearch"
 
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 	"github.com/olivere/elastic/v7"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -327,7 +327,7 @@ func TestUpdate(t *testing.T) {
 				1: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
 					ResponceCode: 200,
-					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
+					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
 				},
 				2: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
@@ -379,7 +379,7 @@ func TestUpdate(t *testing.T) {
 				1: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
 					ResponceCode: 200,
-					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
+					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
 				},
 				2: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
@@ -432,7 +432,7 @@ func TestUpdate(t *testing.T) {
 				1: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
 					ResponceCode: 200,
-					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
+					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
 				},
 				2: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),

@@ -12,9 +12,9 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 
-	"github.com/90poe/elasticsearch-operator/pkg/apis"
-	"github.com/90poe/elasticsearch-operator/pkg/controller"
-	"github.com/90poe/elasticsearch-operator/version"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/apis"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/controller"
+	"github.com/90poe/elasticsearch-objects-operator/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	kubemetrics "github.com/operator-framework/operator-sdk/pkg/kube-metrics"
@@ -84,7 +84,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
-	err = leader.Become(ctx, "elasticsearch-operator-lock")
+	err = leader.Become(ctx, "elasticsearch-objects-operator-lock")
 	if err != nil {
 		log.Error(err, "")
 		os.Exit(1)

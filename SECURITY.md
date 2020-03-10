@@ -11,5 +11,5 @@ We are currently in active development so there are no supported versions yet.
 
 ## Reporting a Vulnerability
 
-The best way to report a vulnerability is to raise an issue [here](https://github.com/90poe/elasticsearch-operator/issues)
+The best way to report a vulnerability is to raise an issue [here](https://github.com/90poe/elasticsearch-objects-operator/issues)
 and add the *security* label.

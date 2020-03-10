@@ -7,7 +7,7 @@ import (
 	"github.com/olivere/elastic/v7"
 	"github.com/prometheus/common/log"
 
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
 
 // Settings is required to create ES Index

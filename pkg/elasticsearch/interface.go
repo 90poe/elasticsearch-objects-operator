@@ -1,7 +1,7 @@
 package elasticsearch
 
 import (
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
 
 //ES is interface for ElasticSearch

@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
 
 func init() {

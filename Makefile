@@ -27,12 +27,12 @@ ci: unit-test lint build-ci
 
 .PHONY: build-local
 build-local: deps unit-test
-	operator-sdk build --go-build-args '-ldflags=-s -ldflags=-w' xo.90poe.io/elasticsearch-operator:$(version)
+	operator-sdk build --go-build-args '-ldflags=-s -ldflags=-w' xo.90poe.io/elasticsearch-objects-operator:$(version)
 
 .PHONY: build
 build:
 	CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -mod=vendor \
-	-ldflags="-s -w -X github.com/90poe/elasticsearch-operator/internal/version.GitHash=$(git_commit) -X github.com/90poe/elasticsearch-operator/internal/version.BuildDate=$(built_at) -X github.com/90poe/elasticsearch-operator/internal/version=$(version)" \
+	-ldflags="-s -w -X github.com/90poe/elasticsearch-objects-operator/internal/version.GitHash=$(git_commit) -X github.com/90poe/elasticsearch-objects-operator/internal/version.BuildDate=$(built_at) -X github.com/90poe/elasticsearch-objects-operator/internal/version=$(version)" \
 	-a -o ./artifacts/manager ./cmd/manager
 	mv ./artifacts/manager ./artifacts/manager-unpacked
 	upx -q -o ./artifacts/manager ./artifacts/manager-unpacked
@@ -41,7 +41,7 @@ build:
 .PHONY: build-ci
 build-ci:
 	CGO_ENABLED=0 go build -mod=vendor \
-	-ldflags="-s -w -X github.com/90poe/elasticsearch-operator/internal/version.GitHash=$(git_commit) -X github.com/90poe/elasticsearch-operator/internal/version.BuildDate=$(built_at) -X github.com/90poe/elasticsearch-operator/internal/version=$(version)" \
+	-ldflags="-s -w -X github.com/90poe/elasticsearch-objects-operator/internal/version.GitHash=$(git_commit) -X github.com/90poe/elasticsearch-objects-operator/internal/version.BuildDate=$(built_at) -X github.com/90poe/elasticsearch-objects-operator/internal/version=$(version)" \
 	-a -o ./artifacts/manager ./cmd/manager
 
 deps:

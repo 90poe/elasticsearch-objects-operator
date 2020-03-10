@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	xov1alpha1 "github.com/90poe/elasticsearch-operator/pkg/apis/xo/v1alpha1"
-	"github.com/90poe/elasticsearch-operator/pkg/consts"
+	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/consts"
 )
 
 func diffSettings(k8sSett *xov1alpha1.ESIndexSettings,
@@ -69,7 +69,7 @@ func addManagedBy2Interface(src string) (interface{}, error) {
 	if !ok {
 		//Adding required managed-by
 		m["_meta"] = map[string]interface{}{
-			"managed-by": "elasticsearch-operator.xo.90poe.io",
+			"managed-by": "elasticsearch-objects-operator.xo.90poe.io",
 		}
 		return m, nil
 	}
@@ -77,7 +77,7 @@ func addManagedBy2Interface(src string) (interface{}, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid _meta map")
 	}
-	metaMap["managed-by"] = "elasticsearch-operator.xo.90poe.io"
+	metaMap["managed-by"] = "elasticsearch-objects-operator.xo.90poe.io"
 
 	return m, nil
 }

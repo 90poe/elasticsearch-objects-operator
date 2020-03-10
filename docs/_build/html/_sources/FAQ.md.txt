@@ -1,3 +1,3 @@
 # FAQ
 
-Any questions realted to elasticsearch-operator:
+Any questions realted to elasticsearch-objects-operator:

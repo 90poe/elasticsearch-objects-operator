@@ -1,33 +1,33 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: elasticsearch-operator
+  name: elasticsearch-objects-operator
   labels:
-    app: elasticsearch-operator
+    app: elasticsearch-objects-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: elasticsearch-operator
+      name: elasticsearch-objects-operator
   template:
     metadata:
       labels:
-        name: elasticsearch-operator
-        app: elasticsearch-operator
+        name: elasticsearch-objects-operator
+        app: elasticsearch-objects-operator
     spec:
-      serviceAccountName: elasticsearch-operator
+      serviceAccountName: elasticsearch-objects-operator
       containers:
-        - name: elasticsearch-operator
+        - name: elasticsearch-objects-operator
           # Replace this with the built image name
-          image: 90poe/elasticsearch-operator
+          image: 90poe/elasticsearch-objects-operator
           command:
-          - elasticsearch-operator
+          - elasticsearch-objects-operator
           imagePullPolicy: Always
           env:
             - name: ES_URL
               valueFrom:
                 secretKeyRef:
-                  name: elasticsearch-operator-secret
+                  name: elasticsearch-objects-operator-secret
                   key: ES_URL
             - name: WATCH_NAMESPACE
               valueFrom:
@@ -38,4 +38,4 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
-              value: "elasticsearch-operator"
+              value: "elasticsearch-objects-operator"

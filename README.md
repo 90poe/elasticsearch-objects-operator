@@ -1,4 +1,4 @@
-# ElasticSearch operator
+# ElasticSearch objects Operator
 
 ## Rationale
 ElasticSearch operator is Kubernetes operator, which manages ES cluster indexes and templates.
@@ -49,4 +49,4 @@ Operator has folowing logic while managing ES templates:
 
     3.3. If CRD has `drop_on_delete` flag set, we would also try to delete template. If error occures, it would be reported to operator logs.
 
-Documentation is available [here](https://elasticsearch-operator.readthedocs.io/en/latest/).
+Documentation is available [here](https://elasticsearch-objects-operator.readthedocs.io/en/latest/).
