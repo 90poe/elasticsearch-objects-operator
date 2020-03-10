@@ -14,7 +14,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -26,7 +25,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "7.0.10"
+	Version = "7.0.12"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -815,8 +814,6 @@ func (c *Client) Stop() {
 	c.infof("elastic: client stopped")
 }
 
-var logDeprecation = func(*http.Request, *http.Response) {}
-
 // errorf logs to the error log.
 func (c *Client) errorf(format string, args ...interface{}) {
 	if c.errorlog != nil {
@@ -994,25 +991,24 @@ func (c *Client) sniffNode(ctx context.Context, url string) []*conn {
 	return nodes
 }
 
-// reSniffHostAndPort is used to extract hostname and port from a result
-// from a Nodes Info API (example: "inet[/127.0.0.1:9200]").
-var reSniffHostAndPort = regexp.MustCompile(`\/([^:]*):([0-9]+)\]`)
-
+// extractHostname returns the URL from the http.publish_address setting.
 func (c *Client) extractHostname(scheme, address string) string {
-	if strings.HasPrefix(address, "inet") {
-		m := reSniffHostAndPort.FindStringSubmatch(address)
-		if len(m) == 3 {
-			return fmt.Sprintf("%s://%s:%s", scheme, m[1], m[2])
-		}
+	var (
+		host string
+		port string
+
+		addrs = strings.Split(address, "/")
+		ports = strings.Split(address, ":")
+	)
+
+	if len(addrs) > 1 {
+		host = addrs[0]
+	} else {
+		host = strings.Split(addrs[0], ":")[0]
 	}
-	s := address
-	if idx := strings.Index(s, "/"); idx >= 0 {
-		s = s[idx+1:]
-	}
-	if !strings.Contains(s, ":") {
-		return ""
-	}
-	return fmt.Sprintf("%s://%s", scheme, s)
+	port = ports[len(ports)-1]
+
+	return fmt.Sprintf("%s://%s:%s", scheme, host, port)
 }
 
 // updateConns updates the clients' connections with new information
@@ -1665,6 +1661,11 @@ func (c *Client) Flush(indices ...string) *IndicesFlushService {
 // Flush.
 func (c *Client) SyncedFlush(indices ...string) *IndicesSyncedFlushService {
 	return NewIndicesSyncedFlushService(c).Index(indices...)
+}
+
+// ClearCache clears caches for one or more indices.
+func (c *Client) ClearCache(indices ...string) *IndicesClearCacheService {
+	return NewIndicesClearCacheService(c).Index(indices...)
 }
 
 // Alias enables the caller to add and/or remove aliases.
