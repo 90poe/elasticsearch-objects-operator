@@ -49,7 +49,7 @@ rules:
   resources:
   - deployments/finalizers
   resourceNames:
-  - kafka-objs-operator
+  - elasticsearch-objects-operator
   verbs:
   - "update"
 - apiGroups:
