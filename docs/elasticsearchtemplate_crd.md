@@ -13,9 +13,14 @@ spec:
   index_patterns:
   - "zm_spm_draft_position_weather_*"
   aliases:
-    add:
-      indices:
-      - "zm_spm_draft_position_weather_1"
+    some_test: {}
+    "{index}-alias-for-{gender}":
+      filter: |
+        {
+          "term" : {
+            "product" : "Elasticsearch"
+          }
+        }
       aliases:
       - "zm_spm_draft_position_weather"
   settings:

@@ -173,9 +173,14 @@
   <span class="n">index_patterns</span><span class="p">:</span>
   <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather_*&quot;</span>
   <span class="n">aliases</span><span class="p">:</span>
-    <span class="n">add</span><span class="p">:</span>
-      <span class="n">indices</span><span class="p">:</span>
-      <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather_1&quot;</span>
+    <span class="n">some_test</span><span class="p">:</span> <span class="p">{}</span>
+    <span class="s2">&quot;</span><span class="si">{index}</span><span class="s2">-alias-for-</span><span class="si">{gender}</span><span class="s2">&quot;</span><span class="p">:</span>
+      <span class="nb">filter</span><span class="p">:</span> <span class="o">|</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;term&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;product&quot;</span> <span class="p">:</span> <span class="s2">&quot;Elasticsearch&quot;</span>
+          <span class="p">}</span>
+        <span class="p">}</span>
       <span class="n">aliases</span><span class="p">:</span>
       <span class="o">-</span> <span class="s2">&quot;zm_spm_draft_position_weather&quot;</span>
   <span class="n">settings</span><span class="p">:</span>

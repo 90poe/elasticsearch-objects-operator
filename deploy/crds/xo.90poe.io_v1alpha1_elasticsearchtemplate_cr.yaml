@@ -11,7 +11,7 @@ spec:
   aliases:
     some_test: {}
     "{index}-alias-for-{gender}":
-      filter: >
+      filter: |
         {
           "term" : {
             "product" : "Elasticsearch"
