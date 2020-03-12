@@ -47,7 +47,6 @@ build-ci:
 deps:
 	operator-sdk generate crds
 	operator-sdk generate k8s
-	go mod vendor
 
 unit-test:
 	go test -v -parallel=2 -mod=vendor -cover -covermode=count \

@@ -37,7 +37,7 @@ spec:
               type: boolean
             mappings:
               description: Mappings of ES Index
-              pattern: '[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]'
+              pattern: '[{\[]{1}([,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}'
               type: string
             name:
               description: See more at https://www.elastic.co/guide/en/elasticsearch/reference/7.x/index-modules.html

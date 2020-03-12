@@ -33,138 +33,52 @@ spec:
           description: ElasticSearchTemplateSpec defines the desired state of ElasticSearchTemplate
           properties:
             aliases:
+              additionalProperties:
+                description: ESAlias is alias object from https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-aliases.html
+                properties:
+                  aliases:
+                    description: (String) Comma-separated list or wildcard expression
+                      of index alias names to add, remove, or delete. If the alias
+                      parameter is not specified, this parameter is required for the
+                      add or remove action.
+                    items:
+                      type: string
+                    type: array
+                  filter:
+                    description: (Optional, query object in string) Filter query used
+                      to limit the index alias. If specified, the index alias only
+                      applies to documents returned by the filter. Filter query used
+                      to limit the index alias. If specified, the index alias only
+                      applies to documents returned by the filter. See Filtered aliases
+                      for an example.
+                    pattern: '[{\[]{1}([,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}'
+                    type: string
+                  index_routing:
+                    description: (Optional, string) Custom routing value used for
+                      the alias’s indexing operations.
+                    type: string
+                  indices:
+                    description: (Array) Array of index names used to perform the
+                      action. If the index parameter is not specified, this parameter
+                      is required.
+                    items:
+                      type: string
+                    type: array
+                  is_write_index:
+                    description: (Optional, boolean) If true, assigns the index as
+                      an alias’s write index. Defaults to false.
+                    type: boolean
+                  routing:
+                    description: (Optional, string) Custom routing value used to route
+                      operations to a specific shard.
+                    type: string
+                  search_routing:
+                    description: (Optional, string) Custom routing value used for
+                      the alias’s search operations.
+                    type: string
+                type: object
               description: (Optional, alias object) Index aliases which include the
-                index. See Update index alias.
-              properties:
-                add:
-                  description: Adds an alias to an index.
-                  properties:
-                    aliases:
-                      description: (String) Comma-separated list or wildcard expression
-                        of index alias names to add, remove, or delete. If the alias
-                        parameter is not specified, this parameter is required for
-                        the add or remove action.
-                      items:
-                        type: string
-                      type: array
-                    filter:
-                      description: (Optional, query object) Filter query used to limit
-                        the index alias. If specified, the index alias only applies
-                        to documents returned by the filter. Filter query used to
-                        limit the index alias. If specified, the index alias only
-                        applies to documents returned by the filter. See Filtered
-                        aliases for an example.
-                      type: string
-                    index_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s indexing operations.
-                      type: string
-                    indices:
-                      description: (Array) Array of index names used to perform the
-                        action. If the index parameter is not specified, this parameter
-                        is required.
-                      items:
-                        type: string
-                      type: array
-                    is_write_index:
-                      description: (Optional, boolean) If true, assigns the index
-                        as an alias’s write index. Defaults to false.
-                      type: boolean
-                    routing:
-                      description: (Optional, string) Custom routing value used to
-                        route operations to a specific shard.
-                      type: string
-                    search_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s search operations.
-                      type: string
-                  type: object
-                remove:
-                  description: Adds an alias to an index.
-                  properties:
-                    aliases:
-                      description: (String) Comma-separated list or wildcard expression
-                        of index alias names to add, remove, or delete. If the alias
-                        parameter is not specified, this parameter is required for
-                        the add or remove action.
-                      items:
-                        type: string
-                      type: array
-                    filter:
-                      description: (Optional, query object) Filter query used to limit
-                        the index alias. If specified, the index alias only applies
-                        to documents returned by the filter. Filter query used to
-                        limit the index alias. If specified, the index alias only
-                        applies to documents returned by the filter. See Filtered
-                        aliases for an example.
-                      type: string
-                    index_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s indexing operations.
-                      type: string
-                    indices:
-                      description: (Array) Array of index names used to perform the
-                        action. If the index parameter is not specified, this parameter
-                        is required.
-                      items:
-                        type: string
-                      type: array
-                    is_write_index:
-                      description: (Optional, boolean) If true, assigns the index
-                        as an alias’s write index. Defaults to false.
-                      type: boolean
-                    routing:
-                      description: (Optional, string) Custom routing value used to
-                        route operations to a specific shard.
-                      type: string
-                    search_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s search operations.
-                      type: string
-                  type: object
-                remove_index:
-                  description: Adds an alias to an index.
-                  properties:
-                    aliases:
-                      description: (String) Comma-separated list or wildcard expression
-                        of index alias names to add, remove, or delete. If the alias
-                        parameter is not specified, this parameter is required for
-                        the add or remove action.
-                      items:
-                        type: string
-                      type: array
-                    filter:
-                      description: (Optional, query object) Filter query used to limit
-                        the index alias. If specified, the index alias only applies
-                        to documents returned by the filter. Filter query used to
-                        limit the index alias. If specified, the index alias only
-                        applies to documents returned by the filter. See Filtered
-                        aliases for an example.
-                      type: string
-                    index_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s indexing operations.
-                      type: string
-                    indices:
-                      description: (Array) Array of index names used to perform the
-                        action. If the index parameter is not specified, this parameter
-                        is required.
-                      items:
-                        type: string
-                      type: array
-                    is_write_index:
-                      description: (Optional, boolean) If true, assigns the index
-                        as an alias’s write index. Defaults to false.
-                      type: boolean
-                    routing:
-                      description: (Optional, string) Custom routing value used to
-                        route operations to a specific shard.
-                      type: string
-                    search_routing:
-                      description: (Optional, string) Custom routing value used for
-                        the alias’s search operations.
-                      type: string
-                  type: object
+                index. See Update index alias at https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-aliases.html
               type: object
             drop_on_delete:
               description: Should we drop template if K8S object is deleted, default

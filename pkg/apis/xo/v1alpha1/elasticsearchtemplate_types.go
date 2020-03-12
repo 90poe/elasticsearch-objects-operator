@@ -7,15 +7,16 @@ import (
 // ESAlias is alias object from https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-aliases.html
 type ESAlias struct {
 	// (Array) Array of index names used to perform the action. If the index parameter is not specified, this parameter is required.
-	// +required
+	// +optional
 	// +listType=set
 	Indices []string `json:"indices,omitempty"`
 	// (String) Comma-separated list or wildcard expression of index alias names to add, remove, or delete. If the alias parameter is not specified, this parameter is required for the add or remove action.
-	// +required
+	// +optional
 	// +listType=set
 	Aliases []string `json:"aliases,omitempty"`
-	// (Optional, query object) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.
+	// (Optional, query object in string) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.
 	// +optional
+	// +kubebuilder:validation:Pattern=`[{\[]{1}([,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}`
 	Filter string `json:"filter,omitempty"`
 	// (Optional, boolean) If true, assigns the index as an alias’s write index. Defaults to false.
 	// +optional
@@ -29,19 +30,6 @@ type ESAlias struct {
 	// (Optional, string) Custom routing value used for the alias’s search operations.
 	// +optional
 	SearchRouting string `json:"search_routing,omitempty"`
-}
-
-// ESAliases is aliases object from https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-aliases.html
-type ESAliases struct {
-	// Adds an alias to an index.
-	// +optional
-	Add ESAlias `json:"add,omitempty"`
-	// Adds an alias to an index.
-	// +optional
-	Remove ESAlias `json:"remove,omitempty"`
-	// Adds an alias to an index.
-	// +optional
-	RemoveIndex ESAlias `json:"remove_index,omitempty"`
 }
 
 // ElasticSearchTemplateSpec defines the desired state of ElasticSearchTemplate
@@ -59,9 +47,9 @@ type ElasticSearchTemplateSpec struct {
 	// (Required, array of strings) Array of wildcard expressions used to match the names of indices during creation.
 	// +listType=set
 	IndexPatterns []string `json:"index_patterns"`
-	// (Optional, alias object) Index aliases which include the index. See Update index alias.
+	// (Optional, alias object) Index aliases which include the index. See Update index alias at https://www.elastic.co/guide/en/elasticsearch/reference/7.x/indices-aliases.html
 	// +optional
-	Aliases ESAliases `json:"aliases,omitempty"`
+	Aliases map[string]ESAlias `json:"aliases,omitempty"`
 
 	// (Optional, index setting object) Configuration options for the index. See Index Settings.
 	// +optional

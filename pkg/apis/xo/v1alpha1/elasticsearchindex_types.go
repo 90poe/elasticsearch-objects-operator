@@ -220,7 +220,7 @@ type ElasticSearchIndexSpec struct {
 	// +optional
 	Settings ESIndexSettings `json:"settings"`
 	// Mappings of ES Index
-	// +kubebuilder:validation:Pattern=`[^,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]`
+	// +kubebuilder:validation:Pattern=`[{\[]{1}([,:{}\[\]0-9.\-+Eaeflnr-u \n\r\t]|".*?")+[}\]]{1}`
 	Mappings string `json:"mappings"`
 
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
