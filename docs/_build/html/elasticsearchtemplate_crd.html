@@ -236,22 +236,10 @@
 <td align="left">Array of wildcard expressions used to match the names of indices during creation.</td>
 </tr>
 <tr>
-<td>aliases.add</td>
-<td align="center">ESAlias</td>
+<td>aliases</td>
+<td align="center">map[string]ESAlias</td>
 <td align="center">No</td>
-<td align="left">See <a href="#ESAlias">ESAlias</a></td>
-</tr>
-<tr>
-<td>aliases.remove</td>
-<td align="center">ESAlias</td>
-<td align="center">No</td>
-<td align="left">See <a href="#ESAlias">ESAlias</a></td>
-</tr>
-<tr>
-<td>aliases.remove_index</td>
-<td align="center">ESAlias</td>
-<td align="center">No</td>
-<td align="left">See <a href="#ESAlias">ESAlias</a></td>
+<td align="left">Map, where keys are alias names, and values are ESAlias, see <a href="#ESAlias">ESAlias</a></td>
 </tr>
 <tr>
 <td>settings</td>
@@ -302,7 +290,7 @@
 <td>filter</td>
 <td align="center">string</td>
 <td align="center">No</td>
-<td align="left">(Optional, query object) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.</td>
+<td align="left">(Optional, query object in string form) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.</td>
 </tr>
 <tr>
 <td>is_write_index</td>

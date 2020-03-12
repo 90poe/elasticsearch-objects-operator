@@ -66,7 +66,7 @@ You would need to amend `spec` section.
 |--------|:---:|:------:|:---|
 |indices|[]string|No|(Array) Array of index names used to perform the action. If the index parameter is not specified, this parameter is required.|
 |aliases|[]string|No|(String) Comma-separated list or wildcard expression of index alias names to add, remove, or delete. If the alias parameter is not specified, this parameter is required for the add or remove action.|
-|filter|string|No|(Optional, query object) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.|
+|filter|string|No|(Optional, query object in string form) Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. Filter query used to limit the index alias. If specified, the index alias only applies to documents returned by the filter. See Filtered aliases for an example.|
 |is_write_index|bool|No|(Optional, boolean) If true, assigns the index as an alias’s write index. Defaults to false.|
 |routing|string|No|(Optional, string) Custom routing value used to route operations to a specific shard.|
 |index_routing|string|No|(Optional, string) Custom routing value used for the alias’s indexing operations.|
