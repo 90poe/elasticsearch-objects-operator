@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/olivere/elastic/v7"
-	"github.com/prometheus/common/log"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
@@ -36,39 +35,6 @@ type Template struct {
 	Version       int64              `json:"version,omitempty"`
 }
 
-//CreateTemplate is going to create ES template with template
-func (c *Client) CreateTemplate(template *xov1alpha1.ElasticSearchTemplate) error {
-	// Create a new template.
-	sett := Settings{
-		Index: template.Spec.Settings,
-	}
-	newIndexTempl := Template{
-		IndexPatterns: template.Spec.IndexPatterns,
-		Settings:      sett,
-		Version:       template.Spec.Version,
-	}
-	var err error
-	//Turn Spec Aliases into ones that ES could understand
-	if len(template.Spec.Aliases) > 0 {
-		newIndexTempl.Aliases, err = c.createESAlias(template.Spec.Aliases)
-		if err != nil {
-			return err
-		}
-	}
-	//Adding managed by message
-	newIndexTempl.Mappings, err = addManagedBy2Interface(template.Spec.Mappings)
-	if err != nil {
-		return fmt.Errorf("can't add managed-by 2 ES template: %w", err)
-	}
-	// Create template
-	err = c.createOrUpdateTemplate(template.Spec.Name, newIndexTempl)
-	if err != nil {
-		return err
-	}
-	log.Info(fmt.Sprintf("successfully created ES template %s", template.Spec.Name))
-	return nil
-}
-
 func (c *Client) createESAlias(original map[string]xov1alpha1.ESAlias) (map[string]ESAlias, error) {
 	newAliases := make(map[string]ESAlias, len(original))
 	for key, value := range original {
@@ -91,30 +57,29 @@ func (c *Client) createESAlias(original map[string]xov1alpha1.ESAlias) (map[stri
 	return newAliases, nil
 }
 
-//UpdateTemplate is going to update ES template with template user provides or create a new one
+//CreateUpdateTemplate is going to update ES template with template user provides or create a new one
 //nolint
-func (c *Client) UpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate) (string, error) {
+func (c *Client) CreateUpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate) (string, error) {
+	retMsg := "successfully created ES template %s"
 	// Check if template exists
 	servSettings, err := c.getServerTemplateSettings(modified.Spec.Name)
-	if err != nil {
-		if !errors.Is(err, errTemplateNotFound) {
-			return "", fmt.Errorf("can't get template settings: %w", err)
-		}
-		// template doesn't exist, lets create it
-		err = c.CreateTemplate(modified)
+	if err != nil && !errors.Is(err, errTemplateNotFound) {
+		//Error is not NotFound - report back
+		return "", fmt.Errorf("can't get template settings: %w", err)
+	}
+	//Template exists - lets diff settings
+	if servSettings != nil {
+		changed, err := diffSettings(&modified.Spec.Settings, servSettings, false)
 		if err != nil {
-			return "", fmt.Errorf("can't create new template: %w", err)
+			return "", err
 		}
-		return fmt.Sprintf("successfully created updated ES template %s", modified.Spec.Name), nil
+		if !changed {
+			// No changes - nothing to do
+			return fmt.Sprintf("no changes on template named %s", modified.Spec.Name), nil
+		}
+		retMsg = "successfully updated ES template %s"
 	}
-	changed, err := diffSettings(&modified.Spec.Settings, servSettings, false)
-	if err != nil {
-		return "", err
-	}
-	if !changed {
-		// No changes - nothing to do
-		return fmt.Sprintf("no changes on template named %s", modified.Spec.Name), nil
-	}
+	//Create/Update template
 	sett := Settings{
 		Index: modified.Spec.Settings,
 	}
@@ -140,7 +105,7 @@ func (c *Client) UpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate) (str
 	if err != nil {
 		return "", err
 	}
-	return fmt.Sprintf("successfully updated ES template %s", modified.Spec.Name), nil
+	return fmt.Sprintf(retMsg, modified.Spec.Name), nil
 }
 
 func (c *Client) createOrUpdateTemplate(name string, settings interface{}) error {

@@ -22,100 +22,7 @@ type TestUpdateTempl struct {
 	Msg   string
 }
 
-func TestCreateTemplate(t *testing.T) {
-	var testDoer *TestDoer
-	client := Client{}
-	client.esURL = "http://localhost:80"
-	client.es, testDoer = setupCreateTestClient(t)
-	defer testDoer.Close()
-	tests := []TestCreateTempl{
-		{
-			Templ: &xov1alpha1.ElasticSearchTemplate{
-				Spec: xov1alpha1.ElasticSearchTemplateSpec{
-					Name:          "some_templ",
-					DropOnDelete:  true,
-					IndexPatterns: []string{"some_index"},
-					Settings: xov1alpha1.ESIndexSettings{
-						NumOfShards: 32,
-					},
-					Aliases: map[string]xov1alpha1.ESAlias{
-						"{index}-alias-for-{gender}": {},
-					},
-					Mappings: `
-					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
-						"properties": {
-						  "isRead": {
-							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
-						}
-					  }
-					`,
-				},
-			},
-			R2R: Responce2Req{
-				RequestURI:   "/_template/some_templ",
-				ResponceCode: 200,
-				Responce:     `{"acknowledged":true}`,
-			},
-		},
-		{
-			Templ: &xov1alpha1.ElasticSearchTemplate{
-				Spec: xov1alpha1.ElasticSearchTemplateSpec{
-					Name:          "/_template/some_templ",
-					DropOnDelete:  true,
-					IndexPatterns: []string{"some_index"},
-					Settings: xov1alpha1.ESIndexSettings{
-						NumOfShards: 32,
-					},
-					Mappings: `
-					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
-						"properties": {
-						  "isRead": {
-							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
-						}
-					  }
-					`,
-				},
-			},
-			R2R: Responce2Req{
-				RequestURI:   "/_template/%2F_template%2Fsome_templ",
-				ResponceCode: 200,
-				Responce:     `{"acknowledged":false}`,
-			},
-			Err: fmt.Errorf("can't acknowledge ES template creation/update"),
-		},
-	}
-	for _, test := range tests {
-		testDoer.R2rChan <- test.R2R
-		err := client.CreateTemplate(test.Templ)
-		if test.Err != nil {
-			assert.EqualError(t, err, fmt.Sprintf("%s", test.Err))
-			continue
-		}
-		assert.NoError(t, err)
-	}
-}
-
-func TestUpdateTemplate(t *testing.T) {
+func TestCreateUpdateTemplate(t *testing.T) {
 	var testDoer *TestDoer
 	client := Client{}
 	client.esURL = "http://localhost:80"
@@ -250,7 +157,7 @@ func TestUpdateTemplate(t *testing.T) {
 					Responce:     `{"acknowledged":true}`,
 				},
 			},
-			Msg: "successfully created updated ES template some_templ",
+			Msg: "successfully created ES template some_templ",
 		},
 		{
 			Templ: &xov1alpha1.ElasticSearchTemplate{
@@ -305,7 +212,7 @@ func TestUpdateTemplate(t *testing.T) {
 		for _, value := range r2rKeys {
 			testDoer.R2rChan <- test.R2R[value]
 		}
-		msg, err := client.UpdateTemplate(test.Templ)
+		msg, err := client.CreateUpdateTemplate(test.Templ)
 		if test.Err != nil {
 			assert.EqualError(t, err, fmt.Sprintf("%s", test.Err))
 			continue

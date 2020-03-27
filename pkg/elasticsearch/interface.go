@@ -11,7 +11,6 @@ type ES interface {
 	UpdateIndex(index *xov1alpha1.ElasticSearchIndex) (string, error)
 	DeleteIndex(indexName string) error
 	//Template
-	CreateTemplate(tmpl *xov1alpha1.ElasticSearchTemplate) error
-	UpdateTemplate(tmpl *xov1alpha1.ElasticSearchTemplate) (string, error)
+	CreateUpdateTemplate(tmpl *xov1alpha1.ElasticSearchTemplate) (string, error)
 	DeleteTemplate(tmplName string) error
 }

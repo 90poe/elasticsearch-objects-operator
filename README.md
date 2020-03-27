@@ -30,7 +30,7 @@ Operator has folowing logic while managing ES indexes:
 Operator has folowing logic while managing ES templates:
 1. Create logic:
 
-    1.1. If template alredy exists or there is an error in template settings, operator would report error in `status.latest_error` and would not perform any other operations upon that template. Only thing you could perform is to start from scratch: delete CRD, fix issues and try again.
+    1.1. If template alredy exists or there is an error in template settings, operator would report error in `status.latest_error`.
 
     1.2. Upon template successful creation you would be able to manage that template via CRD.
 
