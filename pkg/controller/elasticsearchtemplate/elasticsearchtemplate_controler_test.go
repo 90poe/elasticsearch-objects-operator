@@ -35,16 +35,11 @@ type Responce2Req struct {
 	Responce     string
 }
 
-type TestCreateTempl struct {
-	Index *xov1alpha1.ElasticSearchTemplate
-	R2R   Responce2Req
-	Err   error
-}
-
 type TestUpdateTempl struct {
-	Index *xov1alpha1.ElasticSearchTemplate
-	R2Rs  map[int]Responce2Req
-	Err   error
+	Index  *xov1alpha1.ElasticSearchTemplate
+	Status *xov1alpha1.ElasticSearchIndexStatus
+	R2Rs   map[int]Responce2Req
+	Err    error
 }
 
 type TestDoer struct {
@@ -150,127 +145,6 @@ func TestReconcile(t *testing.T) {
 	assert.Equal(t, res.Requeue, false)
 }
 
-func TestCreate(t *testing.T) {
-	var (
-		name      = "test-elasticsearch"
-		namespace = "operator"
-	)
-	// Create mock reconcile request
-	req := reconcile.Request{}
-	tests := []TestCreateTempl{
-		{
-			Index: &xov1alpha1.ElasticSearchTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace,
-				},
-				Spec: xov1alpha1.ElasticSearchTemplateSpec{
-					Name:          name,
-					DropOnDelete:  true,
-					IndexPatterns: []string{"some_index"},
-					Settings: xov1alpha1.ESIndexSettings{
-						NumOfShards: 32,
-					},
-					Mappings: `
-					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
-						"properties": {
-						  "isRead": {
-							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
-						}
-					  }
-					`,
-				},
-			},
-			R2R: Responce2Req{
-				RequestURI:   fmt.Sprintf("/_template/%s", name),
-				ResponceCode: 200,
-				Responce:     `{"acknowledged":true}`,
-			},
-		},
-		{
-			Index: &xov1alpha1.ElasticSearchTemplate{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      name,
-					Namespace: namespace,
-				},
-				Spec: xov1alpha1.ElasticSearchTemplateSpec{
-					Name:          name,
-					DropOnDelete:  true,
-					IndexPatterns: []string{"some_index"},
-					Settings: xov1alpha1.ESIndexSettings{
-						NumOfShards: 32,
-					},
-					Mappings: `
-					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
-						"properties": {
-						  "isRead": {
-							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
-						}
-					  }
-					`,
-				},
-			},
-			R2R: Responce2Req{
-				RequestURI:   fmt.Sprintf("/_template/%s", name),
-				ResponceCode: 400,
-				Responce:     `{"acknowledged":false}`,
-			},
-			Err: fmt.Errorf("can't create or update ES template: elastic: Error 400 (Bad Request)"),
-		},
-	}
-	for _, test := range tests {
-		client, testDoer, sc := BeforeEachTest(t)
-		defer testDoer.Close()
-		testDoer.R2rChan <- test.R2R
-
-		// Create fake K8S client
-		cl := fake.NewFakeClient([]runtime.Object{test.Index}...)
-		// Create ReconcileElasticSearchTemplate
-		rp := &ReconcileElasticSearchTemplate{
-			client: cl,
-			scheme: sc,
-			es:     client,
-		}
-		// Call Reconcile
-		res, err := rp.Reconcile(req)
-		assert.NoError(t, err)
-		assert.Equal(t, res.Requeue, false)
-		foundES := &xov1alpha1.ElasticSearchTemplate{}
-		err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, foundES)
-		assert.NoError(t, err)
-		if test.Err != nil {
-			assert.Equal(t, foundES.Status.Acknowledged, false)
-			assert.Equal(t, foundES.Status.Operation, consts.ESCreateOperation)
-			assert.Equal(t, foundES.Status.LatestError, fmt.Sprintf("%s", test.Err))
-			continue
-		}
-		assert.Equal(t, foundES.Status.Name, name)
-		assert.Equal(t, foundES.Status.Acknowledged, true)
-		assert.Equal(t, foundES.Status.Operation, consts.ESCreateOperation)
-		assert.Equal(t, foundES.Status.LatestError, "")
-	}
-}
-
 func TestUpdate(t *testing.T) {
 	var (
 		name      = "test-elasticsearch"
@@ -285,6 +159,65 @@ func TestUpdate(t *testing.T) {
 	}
 	tests := []TestUpdateTempl{
 		{
+			//Successful Update
+			Index: &xov1alpha1.ElasticSearchTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:       name,
+					Namespace:  namespace,
+					Finalizers: []string{"finalizer.elasticsearchtemplate.xo.90poe.io"},
+				},
+				Spec: xov1alpha1.ElasticSearchTemplateSpec{
+					Name:          name,
+					DropOnDelete:  true,
+					IndexPatterns: []string{"some_index"},
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfShards: 33, //Diff here
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"_source": {
+						  "enabled": true
+						},
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  },
+						  "createdAt": {
+							"type": "date",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+				Status: xov1alpha1.ElasticSearchTemplateStatus{
+					Operation:    consts.ESUpdateOperation,
+					Name:         name,
+					Acknowledged: true,
+				},
+			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: true,
+				Operation:    consts.ESUpdateOperation,
+			},
+			R2Rs: map[int]Responce2Req{
+				1: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 200,
+					Responce:     fmt.Sprintf(`{"%s":{"order":0,"index_patterns":["some_index"],"settings":{"index":{"number_of_shards":"32"}},"mappings":{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"},"_source":{"enabled":true},"dynamic":false,"properties":{"createdAt":{"index":true,"type":"date"},"isRead":{"index":true,"type":"boolean"}}},"aliases":{"add":{},"remove_index":{},"remove":{}}}}`, name),
+				},
+				2: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":true}`,
+				},
+			},
+		},
+		{
+			//Successful Update even if previously there were some errors
 			Index: &xov1alpha1.ElasticSearchTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
@@ -318,10 +251,16 @@ func TestUpdate(t *testing.T) {
 					`,
 				},
 				Status: xov1alpha1.ElasticSearchTemplateStatus{
-					Operation:    consts.ESUpdateOperation,
+					Operation:    consts.ESCreateOperation,
 					Name:         name,
-					Acknowledged: true,
+					Acknowledged: false,
+					LatestError:  "can't acknowledge ES template creation/update",
 				},
+			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: true,
+				Operation:    consts.ESUpdateOperation,
 			},
 			R2Rs: map[int]Responce2Req{
 				1: {
@@ -337,6 +276,7 @@ func TestUpdate(t *testing.T) {
 			},
 		},
 		{
+			// Unsuccessful update
 			Index: &xov1alpha1.ElasticSearchTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
@@ -375,6 +315,11 @@ func TestUpdate(t *testing.T) {
 					Acknowledged: true,
 				},
 			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: false,
+				Operation:    consts.ESUpdateOperation,
+			},
 			R2Rs: map[int]Responce2Req{
 				1: {
 					RequestURI:   fmt.Sprintf("/_template/%s", name),
@@ -390,6 +335,112 @@ func TestUpdate(t *testing.T) {
 			Err: fmt.Errorf("can't acknowledge ES template creation/update"),
 		},
 		{
+			// Successful creation
+			Index: &xov1alpha1.ElasticSearchTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace,
+				},
+				Spec: xov1alpha1.ElasticSearchTemplateSpec{
+					Name:          name,
+					DropOnDelete:  true,
+					IndexPatterns: []string{"some_index"},
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfShards: 32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"_source": {
+						  "enabled": true
+						},
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  },
+						  "createdAt": {
+							"type": "date",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: true,
+				Operation:    consts.ESCreateOperation,
+			},
+			R2Rs: map[int]Responce2Req{
+				1: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 404,
+					Responce:     "{}",
+				},
+				2: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":true}`,
+				},
+			},
+		},
+		{
+			// Unsuccessful creation
+			Index: &xov1alpha1.ElasticSearchTemplate{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      name,
+					Namespace: namespace,
+				},
+				Spec: xov1alpha1.ElasticSearchTemplateSpec{
+					Name:          name,
+					DropOnDelete:  true,
+					IndexPatterns: []string{"some_index"},
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfShards: 32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"_source": {
+						  "enabled": true
+						},
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  },
+						  "createdAt": {
+							"type": "date",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: false,
+				Operation:    consts.ESCreateOperation,
+				LatestError:  "can't acknowledge ES template creation/update",
+			},
+			R2Rs: map[int]Responce2Req{
+				1: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 404,
+					Responce:     "{}",
+				},
+				2: {
+					RequestURI:   fmt.Sprintf("/_template/%s", name),
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":false}`,
+				},
+			},
+		},
+		{
+			// Successful no diff update (No real update)
 			Index: &xov1alpha1.ElasticSearchTemplate{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:       name,
@@ -423,10 +474,15 @@ func TestUpdate(t *testing.T) {
 					`,
 				},
 				Status: xov1alpha1.ElasticSearchTemplateStatus{
-					Operation:    consts.ESCreateOperation,
+					Operation:    consts.ESUpdateOperation,
 					Name:         name,
 					Acknowledged: false,
 				},
+			},
+			Status: &xov1alpha1.ElasticSearchIndexStatus{
+				Name:         name,
+				Acknowledged: true,
+				Operation:    consts.ESUpdateOperation,
 			},
 			R2Rs: map[int]Responce2Req{
 				1: {
@@ -475,11 +531,10 @@ func TestUpdate(t *testing.T) {
 			assert.Equal(t, foundES.Status.LatestError, fmt.Sprintf("%s", test.Err))
 			continue
 		}
-		assert.Equal(t, foundES.Status.Name, test.Index.Name)
-		assert.Equal(t, foundES.Status.Acknowledged, test.Index.Status.Acknowledged)
-		assert.Equal(t, foundES.Status.Operation, test.Index.Status.Operation)
-		assert.Equal(t, foundES.Status.LatestError, "")
-
+		assert.Equal(t, foundES.Status.Name, test.Status.Name)
+		assert.Equal(t, foundES.Status.Acknowledged, test.Status.Acknowledged)
+		assert.Equal(t, foundES.Status.Operation, test.Status.Operation)
+		assert.Equal(t, foundES.Status.LatestError, test.Status.LatestError)
 	}
 }
 

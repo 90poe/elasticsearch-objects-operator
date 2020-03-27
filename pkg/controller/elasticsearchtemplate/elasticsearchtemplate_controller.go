@@ -140,40 +140,24 @@ func (r *ReconcileElasticSearchTemplate) Reconcile(request reconcile.Request) (_
 		return reconcile.Result{}, nil
 	}
 
-	switch instance.Status.Operation {
-	case "":
-		// Create Template
-		instance.Status.Name = instance.Spec.Name
+	// Create/Update template
+	instance.Status.Name = instance.Spec.Name
+	if instance.Status.Operation == "" {
 		instance.Status.Operation = consts.ESCreateOperation
-		err = r.es.CreateTemplate(instance)
-		if err != nil {
-			instance.Status.LatestError = fmt.Sprintf("%v", err)
-			log.Info(instance.Status.LatestError)
-			return reconcile.Result{}, nil
-		}
-		instance.Status.Acknowledged = true
-		log.Info(fmt.Sprintf("successfully created ES template %s", instance.Spec.Name))
-	case consts.ESCreateOperation, consts.ESUpdateOperation:
-		// Update template
-		if instance.Status.Operation == consts.ESCreateOperation &&
-			!instance.Status.Acknowledged {
-			//Create operation was unsuccessful - ignore update
-			log.Info(fmt.Sprintf("trying to update template '%s' which failed to create - ignoring",
-				instance.Spec.Name))
-			return reconcile.Result{}, nil
-		}
-		instance.Status.LatestError = ""
+	} else {
 		instance.Status.Operation = consts.ESUpdateOperation
-		msg, err := r.es.UpdateTemplate(instance)
-		if err != nil {
-			instance.Status.Acknowledged = false
-			instance.Status.LatestError = fmt.Sprintf("%v", err)
-			log.Info(instance.Status.LatestError)
-			return reconcile.Result{}, nil
-		}
-		if len(msg) != 0 {
-			log.Info(msg)
-		}
+	}
+	msg, err := r.es.CreateUpdateTemplate(instance)
+	if err != nil {
+		instance.Status.Acknowledged = false
+		instance.Status.LatestError = fmt.Sprintf("%v", err)
+		log.Info(instance.Status.LatestError)
+		return reconcile.Result{}, nil
+	}
+	instance.Status.LatestError = ""
+	instance.Status.Acknowledged = true
+	if len(msg) != 0 {
+		log.Info(msg)
 	}
 
 	err = r.addFinalizer(instance, reqLogger)
