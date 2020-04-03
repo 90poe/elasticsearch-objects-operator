@@ -149,3 +149,14 @@ func getKeysFromSettings(prefix string, settings map[string]interface{}) []strin
 	}
 	return ret
 }
+
+func isManagedByESOperator(settings map[string]interface{}) bool {
+	managedBy, ok := getStringValueFromSettings(settings, "_meta.managed-by")
+	if !ok {
+		return false
+	}
+	if managedBy != consts.ESManagedByValue {
+		return false
+	}
+	return true
+}
