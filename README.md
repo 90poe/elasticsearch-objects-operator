@@ -7,9 +7,11 @@ ElasticSearch operator is Kubernetes operator, which manages ES cluster indexes 
 Operator has folowing logic while managing ES indexes:
 1. Create logic:
 
-    1.1. If index already exists or there is an error in index settings, operator would report error in `status.latest_error` and would not perform any other operations upon that index. Only thing you could perform is to start from scratch: delete CRD, fix issues and try again.
+    1.1. If index already exists and in `_meta.managed-by` field value is not `elasticsearch-objects-operator.xo.90poe.io` , operator would report error in `status.latest_error` and would not perform any other operations upon that index. Only thing you could perform is to start from scratch: delete CRD, fix issues and try again.
 
-    1.2. Upon index successful creation you would be able to manage that index via CRD.
+    1.2. If index already exists and in `_meta.managed-by` field value is `elasticsearch-objects-operator.xo.90poe.io`, operator would take over this index and all operations could be performed with this index as with index, already created by Operator.
+
+    1.3. Upon index successful creation you would be able to manage that index via CRD.
 
 2. Update logic:
 
