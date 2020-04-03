@@ -2,11 +2,13 @@ package elasticsearch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/olivere/elastic/v7"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
+	"github.com/90poe/elasticsearch-objects-operator/pkg/consts"
 )
 
 // Settings is required to create ES Index
@@ -20,55 +22,44 @@ type Index struct {
 	Mappings interface{} `json:"mappings"`
 }
 
-//CreateIndex is going to create ES index with index name
-func (c *Client) CreateIndex(index *xov1alpha1.ElasticSearchIndex) error {
-	sett := Settings{
-		Index: index.Spec.Settings,
+// CreateUpdateIndex would update index if it exists or create if not
+func (c *Client) CreateUpdateIndex(object *xov1alpha1.ElasticSearchIndex) (string, error) {
+	//Get index settings and mappings from ES
+	servSettings, servMappings, err := c.getServerIndexSettingsAndMappings(object.Spec.Name)
+	if err != nil && !errors.Is(err, errObjectNotFound) {
+		//Error is not NotFound - report back
+		return "", fmt.Errorf("can't get index details: %w", err)
 	}
-	newIndex := Index{
-		Settings: sett,
+	if servMappings == nil && servSettings == nil {
+		//Create index request
+		return c.createIndex(object)
 	}
-	var err error
-	newIndex.Mappings, err = addManagedBy2Interface(index.Spec.Mappings)
-	if err != nil {
-		return fmt.Errorf("can't add managed-by 2 ES index: %w", err)
+	//Update index
+	//Check if mappings are present
+	if servMappings == nil {
+		//No metadata - index is not managed by us
+		return "", fmt.Errorf("index '%s' is not managed by this operator",
+			object.Spec.Name)
 	}
-	ctx := context.Background()
-	createIndex, err := c.es.CreateIndex(index.Spec.Name).BodyJson(newIndex).Do(ctx)
-	if err != nil {
-		// Handle error
-		return fmt.Errorf("can't create ES index: %w", err)
+	//Is this index is managed by our operator ?
+	managedByUs := isManagedByESOperator(servMappings)
+	if !managedByUs {
+		//Not managed by us - error
+		return "", fmt.Errorf("index '%s' is not managed by this operator",
+			object.Spec.Name)
 	}
-	if !createIndex.Acknowledged {
-		// Not acknowledged
-		return fmt.Errorf("can't acknowledge ES index creation")
+	//Lets diff settings
+	if servSettings != nil {
+		changed, err := diffSettings(&object.Spec.Settings, servSettings, true)
+		if err != nil {
+			return "", err
+		}
+		if !changed {
+			// No changes - nothing to do
+			return fmt.Sprintf("no changes on index named %s", object.Spec.Name), nil
+		}
 	}
-	return nil
-}
-
-// UpdateIndex would update index if possible
-func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex) (string, error) {
-	exists, err := c.doesIndexExists(modified.Spec.Name)
-	if err != nil {
-		return "", fmt.Errorf("can't update index: %w", err)
-	}
-	if !exists {
-		//Index doesn't exists - lets create one
-		return "", c.CreateIndex(modified)
-	}
-	servSettings, err := c.getServerIndexSettings(modified.Spec.Name)
-	if err != nil {
-		return "", fmt.Errorf("can't update index: %w", err)
-	}
-	changed, err := diffSettings(&modified.Spec.Settings, servSettings, true)
-	if err != nil {
-		return "", err
-	}
-	if !changed {
-		// No changes - nothing to do
-		return fmt.Sprintf("no changes on index named %s", modified.Spec.Name), nil
-	}
-	newSettings := modified.Spec.Settings.DeepCopy()
+	newSettings := object.Spec.Settings.DeepCopy()
 	//Null out Static settings which must not change dynamically
 	newSettings.NumOfShards = 0
 	newSettings.Shard = xov1alpha1.ESShard{}
@@ -82,13 +73,12 @@ func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex) (string, e
 	modIndex := Index{
 		Settings: sett,
 	}
-	modIndex.Mappings, err = addManagedBy2Interface(modified.Spec.Mappings)
+	modIndex.Mappings, err = addManagedBy2Interface(object.Spec.Mappings)
 	if err != nil {
 		return "", fmt.Errorf("can't add managed-by 2 ES index: %w", err)
 	}
-	// Null out static settings
-
-	updateIndex, err := c.es.IndexPutSettings(modified.Spec.Name).BodyJson(modIndex).Do(context.Background())
+	//Put index settings
+	updateIndex, err := c.es.IndexPutSettings(object.Spec.Name).BodyJson(modIndex).Do(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("can't update ES index: %w", err)
 	}
@@ -96,7 +86,32 @@ func (c *Client) UpdateIndex(modified *xov1alpha1.ElasticSearchIndex) (string, e
 		// Not acknowledged
 		return "", fmt.Errorf("can't acknowledge ES index update")
 	}
-	return fmt.Sprintf("successfully updated ES index %s", modified.Spec.Name), nil
+	return fmt.Sprintf("successfully updated ES index %s", object.Spec.Name), nil
+}
+
+// createIndex is going to create index
+func (c *Client) createIndex(object *xov1alpha1.ElasticSearchIndex) (string, error) {
+	sett := Settings{
+		Index: object.Spec.Settings,
+	}
+	newIndex := Index{
+		Settings: sett,
+	}
+	var err error
+	newIndex.Mappings, err = addManagedBy2Interface(object.Spec.Mappings)
+	if err != nil {
+		return "", fmt.Errorf("can't add %s 2 ES index: %w", consts.ESManagedByField, err)
+	}
+	createIndex, err := c.es.CreateIndex(object.Spec.Name).BodyJson(newIndex).Do(context.Background())
+	if err != nil {
+		// Handle error
+		return "", fmt.Errorf("can't create ES index: %w", err)
+	}
+	if !createIndex.Acknowledged {
+		// Not acknowledged
+		return "", fmt.Errorf("can't acknowledge ES index creation")
+	}
+	return fmt.Sprintf("successfully created ES index %s", object.Spec.Name), nil
 }
 
 // DeleteIndex would delete ES index
@@ -112,37 +127,23 @@ func (c *Client) DeleteIndex(name string) error {
 	return nil
 }
 
-// doesIndexExists would check if index with such name exists
-func (c *Client) doesIndexExists(indexName string) (bool, error) {
-	indicesCatServ := elastic.NewCatIndicesService(c.es)
-	indices, err := indicesCatServ.Index(indexName).Pretty(false).Do(context.Background())
+// getServerIndexSettings would get settings from ES cluster for index with name indexName
+func (c *Client) getServerIndexSettingsAndMappings(indexName string) (settings map[string]interface{},
+	mappings map[string]interface{}, _ error) {
+	service := elastic.NewIndicesGetService(c.es)
+	sett, err := service.Index(indexName).Do(context.Background())
 	if err != nil {
-		if v7err, ok := err.(*elastic.Error); ok {
-			if v7err.Status == 404 {
-				//Index not found
-				return false, nil
+		if newErr, ok := err.(*elastic.Error); ok {
+			//Elastic error, we could check status
+			if newErr.Status == 404 {
+				return nil, nil, errObjectNotFound
 			}
 		}
-		return false, fmt.Errorf("can't get index: %w", err)
+		return nil, nil, fmt.Errorf("can't get settings and mappings: %w", err)
 	}
-	for _, index := range indices {
-		if index.Index == indexName {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-// getServerIndexSettings would get settings from ES cluster for index with name indexName
-func (c *Client) getServerIndexSettings(indexName string) (map[string]interface{}, error) {
-	service := elastic.NewIndicesGetSettingsService(c.es)
-	settings, err := service.Index(indexName).Do(context.Background())
-	if err != nil {
-		return nil, fmt.Errorf("can't get settings: %w", err)
-	}
-	indexSettings, ok := settings[indexName]
+	index, ok := sett[indexName]
 	if !ok {
-		return nil, fmt.Errorf("no settings")
+		return nil, nil, fmt.Errorf("no index")
 	}
-	return indexSettings.Settings, nil
+	return index.Settings, index.Mappings, nil
 }

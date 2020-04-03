@@ -11,10 +11,6 @@ import (
 	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 )
 
-var (
-	errTemplateNotFound = errors.New("es object not found")
-)
-
 //ESAlias has struct same as xov1alpha1.ESAlias, but replaces Filter with interface
 type ESAlias struct {
 	Indices       []string    `json:"indices,omitempty"`
@@ -63,7 +59,7 @@ func (c *Client) CreateUpdateTemplate(modified *xov1alpha1.ElasticSearchTemplate
 	retMsg := "successfully created ES template %s"
 	// Check if template exists
 	servSettings, err := c.getServerTemplateSettings(modified.Spec.Name)
-	if err != nil && !errors.Is(err, errTemplateNotFound) {
+	if err != nil && !errors.Is(err, errObjectNotFound) {
 		//Error is not NotFound - report back
 		return "", fmt.Errorf("can't get template settings: %w", err)
 	}
@@ -128,7 +124,7 @@ func (c *Client) getServerTemplateSettings(tmplName string) (map[string]interfac
 		if newErr, ok := err.(*elastic.Error); ok {
 			//Elastic error, we could check status
 			if newErr.Status == 404 {
-				return nil, errTemplateNotFound
+				return nil, errObjectNotFound
 			}
 		}
 		return nil, err

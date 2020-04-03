@@ -7,8 +7,7 @@ import (
 //ES is interface for ElasticSearch
 type ES interface {
 	//Index
-	CreateIndex(index *xov1alpha1.ElasticSearchIndex) error
-	UpdateIndex(index *xov1alpha1.ElasticSearchIndex) (string, error)
+	CreateUpdateIndex(index *xov1alpha1.ElasticSearchIndex) (string, error)
 	DeleteIndex(indexName string) error
 	//Template
 	CreateUpdateTemplate(tmpl *xov1alpha1.ElasticSearchTemplate) (string, error)

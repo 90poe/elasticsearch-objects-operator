@@ -148,7 +148,7 @@ type ESShard struct {
 	// Whether or not shards should be checked for corruption before opening. When corruption is detected, it will prevent the shard from being opened. Accepts: true, false, checksum
 	// +optional
 	// +kubebuilder:validation:Pattern=`^(true|false|checksum)$`
-	ShardCheckOnStartup string `json:"check_on_startup,omitempty"`
+	CheckOnStartup string `json:"check_on_startup,omitempty"`
 }
 
 // ESIndexBlocks defines block in dynamic values

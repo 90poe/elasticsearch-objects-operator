@@ -5,6 +5,8 @@ const (
 	ESIndexNameRegexp = `^[^-_+A-Z][^A-Z\\\/\*\?"\<\> ,|#]{1,254}$`
 	ESCreateOperation = "create"
 	ESUpdateOperation = "update"
+	ESManagedByField  = "managed-by"
+	ESManagedByValue  = "elasticsearch-objects-operator.xo.90poe.io"
 )
 
 // ESStaticSettings is map which has ES settings static part

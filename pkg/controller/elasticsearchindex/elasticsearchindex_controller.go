@@ -138,46 +138,24 @@ func (r *ReconcileElasticSearchIndex) Reconcile(request reconcile.Request) (_ re
 		return reconcile.Result{}, nil
 	}
 
-	//We called second time on creation event - nothing to do
-	if instance.Status.Operation == consts.ESCreateOperation &&
-		instance.ObjectMeta.Generation == 1 {
+	// Create/Update index
+	instance.Status.Name = instance.Spec.Name
+	if instance.Status.Operation == "" {
+		instance.Status.Operation = consts.ESCreateOperation
+	} else {
+		instance.Status.Operation = consts.ESUpdateOperation
+	}
+	msg, err := r.es.CreateUpdateIndex(instance)
+	if err != nil {
+		instance.Status.Acknowledged = false
+		instance.Status.LatestError = fmt.Sprintf("%v", err)
+		log.Info(instance.Status.LatestError)
 		return reconcile.Result{}, nil
 	}
-
-	switch instance.Status.Operation {
-	case "":
-		// Create index
-		instance.Status.Name = instance.Spec.Name
-		instance.Status.Operation = consts.ESCreateOperation
-		err = r.es.CreateIndex(instance)
-		if err != nil {
-			instance.Status.LatestError = fmt.Sprintf("%v", err)
-			log.Info(instance.Status.LatestError)
-			return reconcile.Result{}, nil
-		}
-		instance.Status.Acknowledged = true
-		log.Info(fmt.Sprintf("successfully created ES index %s", instance.Spec.Name))
-	case consts.ESCreateOperation, consts.ESUpdateOperation:
-		// Update index
-		if instance.Status.Operation == consts.ESCreateOperation &&
-			!instance.Status.Acknowledged {
-			//Create operation was unsuccessful - ignore update
-			log.Info(fmt.Sprintf("trying to update index '%s' which failed to create - ignoring",
-				instance.Spec.Name))
-			return reconcile.Result{}, nil
-		}
-		instance.Status.LatestError = ""
-		instance.Status.Operation = consts.ESUpdateOperation
-		msg, err := r.es.UpdateIndex(instance)
-		if err != nil {
-			instance.Status.Acknowledged = false
-			instance.Status.LatestError = fmt.Sprintf("%v", err)
-			log.Info(instance.Status.LatestError)
-			return reconcile.Result{}, nil
-		}
-		if len(msg) != 0 {
-			log.Info(msg)
-		}
+	instance.Status.LatestError = ""
+	instance.Status.Acknowledged = true
+	if len(msg) != 0 {
+		log.Info(msg)
 	}
 
 	err = r.addFinalizer(instance, reqLogger)
