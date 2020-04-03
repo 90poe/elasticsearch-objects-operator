@@ -52,7 +52,7 @@ func (c *Client) CreateUpdateIndex(object *xov1alpha1.ElasticSearchIndex) (strin
 	if servSettings != nil {
 		changed, err := diffSettings(&object.Spec.Settings, servSettings, true)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("%s: %w", object.Spec.Name, err)
 		}
 		if !changed {
 			// No changes - nothing to do

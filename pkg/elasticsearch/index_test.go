@@ -199,7 +199,7 @@ func TestCreateUpdateIndex(t *testing.T) {
 					`,
 				},
 			},
-			Err: fmt.Errorf("can't change static setting index.number_of_shards from '32' to '33'"),
+			Err: fmt.Errorf("some_index: can't change static setting index.number_of_shards from '32' to '33'"),
 		},
 		{
 			//Not managed by us
