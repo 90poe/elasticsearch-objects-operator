@@ -94,16 +94,9 @@ func TestCreateUpdate(t *testing.T) {
 					Mappings: `
 					{
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -171,17 +164,9 @@ func TestCreateUpdate(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -207,23 +192,10 @@ func TestCreateUpdate(t *testing.T) {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -268,17 +240,9 @@ func TestCreateUpdate(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -305,23 +269,10 @@ func TestCreateUpdate(t *testing.T) {
 							  "managed-by": "xo"
 							},
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -357,17 +308,9 @@ func TestCreateUpdate(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -437,17 +380,9 @@ func TestCreateUpdate(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -478,23 +413,10 @@ func TestCreateUpdate(t *testing.T) {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -541,17 +463,9 @@ func TestCreateUpdate(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -583,23 +497,10 @@ func TestCreateUpdate(t *testing.T) {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {

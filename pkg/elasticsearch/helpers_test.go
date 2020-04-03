@@ -41,6 +41,13 @@ type TestDiffSett struct {
 	err   error
 }
 
+type TestDiffMappingsSett struct {
+	old string
+	new string
+	res bool
+	err error
+}
+
 func TestGetInt64ValueFromSettings(t *testing.T) {
 	tests := []TestValueSettings{
 		{
@@ -217,7 +224,7 @@ func TestAddManagedBy2Interface(t *testing.T) {
 		{
 			before: "4623456234",
 			after:  "",
-			err:    fmt.Errorf("expected map"),
+			err:    fmt.Errorf("can't json unmarshal mappings: json: cannot unmarshal number into Go value of type map[string]interface {}"),
 		},
 		{
 			before: `{"index": {"number_of_shards": "55"}, "_meta": []}`,
@@ -324,6 +331,50 @@ func TestDiffSettings(t *testing.T) {
 			t.Fatalf("could not unmarshal '%s'", test.dest)
 		}
 		res, err := diffSettings(test.src, destTest, test.index)
+		if test.err != nil {
+			if fmt.Sprintf("%v", test.err) != fmt.Sprintf("%v", err) {
+				t.Fatalf("After test got incorrect err. Expected '%v', got '%v'", test.err, err)
+			}
+			continue
+		}
+		if err != nil {
+			t.Fatalf("could not diff '%v'", err)
+		}
+		if res != test.res {
+			t.Fatalf("After test got incorrect result. Expected '%v', got '%v'", test.res, res)
+		}
+	}
+}
+
+func TestDiffMappings(t *testing.T) {
+	tests := []TestDiffMappingsSett{
+		{
+			old: `{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+			new: `{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+		},
+		{
+			old: `{"_meta":{"managed-by":"objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+			new: `{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+			res: true,
+		},
+		{
+			old: `{"_meta":{"managed-by":"elasticsearch-objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+			new: `{"_meta":{"managed-by2":"elasticsearch-objects-operator.xo.90poe.io"}, "properties":{"country":{"index":false, "type":"text"}, "id":{"type":"keyword"}, "portCode":{"type":"keyword"}, "portName":{"type":"text"}, "region":{"index":false, "type":"text"}}}`,
+			res: true,
+		},
+	}
+	for _, test := range tests {
+		var oldTest map[string]interface{}
+		err := json.Unmarshal([]byte(test.old), &oldTest)
+		if err != nil {
+			t.Fatalf("could not unmarshal '%s'", test.old)
+		}
+		var newTest map[string]interface{}
+		err = json.Unmarshal([]byte(test.new), &newTest)
+		if err != nil {
+			t.Fatalf("could not unmarshal '%s'", test.new)
+		}
+		res, err := diffMappings(oldTest, newTest)
 		if test.err != nil {
 			if fmt.Sprintf("%v", test.err) != fmt.Sprintf("%v", err) {
 				t.Fatalf("After test got incorrect err. Expected '%v', got '%v'", test.err, err)

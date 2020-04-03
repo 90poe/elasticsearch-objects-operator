@@ -1,4 +1,4 @@
-FROM golang:1.13.8-stretch as base
+FROM golang:1.14.1-stretch as base
 
 COPY . /elasticsearch-objects-operator
 WORKDIR /elasticsearch-objects-operator

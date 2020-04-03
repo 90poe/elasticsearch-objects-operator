@@ -18,8 +18,8 @@ type Settings struct {
 
 //Index is configuration struct for ES index creation
 type Index struct {
-	Settings Settings    `json:"settings"`
-	Mappings interface{} `json:"mappings"`
+	Settings Settings               `json:"settings"`
+	Mappings map[string]interface{} `json:"mappings"`
 }
 
 // CreateUpdateIndex would update index if it exists or create if not
@@ -48,15 +48,12 @@ func (c *Client) CreateUpdateIndex(object *xov1alpha1.ElasticSearchIndex) (strin
 		return "", fmt.Errorf("index '%s' is not managed by this operator",
 			object.Spec.Name)
 	}
+	changedSettings := false
 	//Lets diff settings
 	if servSettings != nil {
-		changed, err := diffSettings(&object.Spec.Settings, servSettings, true)
+		changedSettings, err = diffSettings(&object.Spec.Settings, servSettings, true)
 		if err != nil {
 			return "", fmt.Errorf("%s: %w", object.Spec.Name, err)
-		}
-		if !changed {
-			// No changes - nothing to do
-			return fmt.Sprintf("no changes on index named %s", object.Spec.Name), nil
 		}
 	}
 	newSettings := object.Spec.Settings.DeepCopy()
@@ -77,14 +74,38 @@ func (c *Client) CreateUpdateIndex(object *xov1alpha1.ElasticSearchIndex) (strin
 	if err != nil {
 		return "", fmt.Errorf("can't add managed-by 2 ES index: %w", err)
 	}
-	//Put index settings
-	updateIndex, err := c.es.IndexPutSettings(object.Spec.Name).BodyJson(modIndex).Do(context.Background())
+	//Check if mappings changed
+	changedMappins, err := diffMappings(servMappings, modIndex.Mappings)
 	if err != nil {
-		return "", fmt.Errorf("can't update ES index: %w", err)
+		return "", fmt.Errorf("%s: %w", object.Spec.Name, err)
 	}
-	if !updateIndex.Acknowledged {
-		// Not acknowledged
-		return "", fmt.Errorf("can't acknowledge ES index update")
+
+	if !changedMappins && !changedSettings {
+		//Neither mappings nor settings changed
+		return fmt.Sprintf("no changes on index named %s", object.Spec.Name), nil
+	}
+	//Put index settings
+	if changedSettings {
+		updateIndex, err := c.es.IndexPutSettings(object.Spec.Name).BodyJson(modIndex).Do(context.Background())
+		if err != nil {
+			return "", fmt.Errorf("can't update ES index settings: %w", err)
+		}
+		if !updateIndex.Acknowledged {
+			// Not acknowledged
+			return "", fmt.Errorf("can't acknowledge ES index settings update")
+		}
+	}
+	//Put index mappings
+	if changedMappins {
+		service := elastic.NewIndicesPutMappingService(c.es)
+		updateIndex, err := service.Index(object.Spec.Name).BodyJson(modIndex.Mappings).Do(context.Background())
+		if err != nil {
+			return "", fmt.Errorf("can't update ES index mapping: %w", err)
+		}
+		if !updateIndex.Acknowledged {
+			// Not acknowledged
+			return "", fmt.Errorf("can't acknowledge ES index mapping update")
+		}
 	}
 	return fmt.Sprintf("successfully updated ES index %s", object.Spec.Name), nil
 }

@@ -46,24 +46,14 @@ func TestCreateUpdateIndex(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"_meta": {
-							"managed-by": "elasticsearch-objects-operator.xo.90poe.io"
-						},
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
-						  "isRead": {
+							"isRead": {
 							"type": "boolean",
 							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
+							}
 						}
-					  }
+					}
 					`,
 				},
 			},
@@ -79,24 +69,12 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"_meta": {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
+							"dynamic": false,
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -129,24 +107,14 @@ func TestCreateUpdateIndex(t *testing.T) {
 					},
 					Mappings: `
 					{
-						"_meta": {
-							"managed-by": "elasticsearch-objects-operator.xo.90poe.io"
-						},
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
-						  "isRead": {
+							"isRead": {
 							"type": "boolean",
 							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
-						  }
+							}
 						}
-					  }
+					}
 					`,
 				},
 			},
@@ -162,24 +130,12 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"_meta": {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
+							"dynamic": false,
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -246,19 +202,6 @@ func TestCreateUpdateIndex(t *testing.T) {
 							  "country": {
 								"type": "text",
 								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
 							  }
 							}
 						  },
@@ -296,16 +239,9 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 						},
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -362,10 +298,6 @@ func TestCreateUpdateIndex(t *testing.T) {
 						  "isRead": {
 							"type": "boolean",
 							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
-							"index": true
 						  }
 						}
 					  }
@@ -382,7 +314,7 @@ func TestCreateUpdateIndex(t *testing.T) {
 			Err: fmt.Errorf("can't get index details: can't get settings and mappings: elastic: Error 421 (Misdirected Request)"),
 		},
 		{
-			//Successfull Update
+			//Successfull Settings Update
 			Index: &xov1alpha1.ElasticSearchIndex{
 				Spec: xov1alpha1.ElasticSearchIndexSpec{
 					Name:         "some_index",
@@ -394,16 +326,9 @@ func TestCreateUpdateIndex(t *testing.T) {
 					Mappings: `
 					{
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -423,24 +348,12 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"_meta": {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
+							"dynamic": false,
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -480,16 +393,9 @@ func TestCreateUpdateIndex(t *testing.T) {
 					Mappings: `
 					{
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -509,24 +415,12 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"_meta": {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
+							"dynamic": false,
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -551,10 +445,10 @@ func TestCreateUpdateIndex(t *testing.T) {
 					Responce:     `{"acknowledged":false}`,
 				},
 			},
-			Err: fmt.Errorf("can't acknowledge ES index update"),
+			Err: fmt.Errorf("can't acknowledge ES index settings update"),
 		},
 		{
-			//Un-successfull Update
+			//Un-successfull Settings Update
 			Index: &xov1alpha1.ElasticSearchIndex{
 				Spec: xov1alpha1.ElasticSearchIndexSpec{
 					Name:         "some_index",
@@ -566,16 +460,9 @@ func TestCreateUpdateIndex(t *testing.T) {
 					Mappings: `
 					{
 						"dynamic": false,
-						"_source": {
-						  "enabled": true
-						},
 						"properties": {
 						  "isRead": {
 							"type": "boolean",
-							"index": true
-						  },
-						  "createdAt": {
-							"type": "date",
 							"index": true
 						  }
 						}
@@ -595,24 +482,12 @@ func TestCreateUpdateIndex(t *testing.T) {
 							"_meta": {
 							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
 							},
+							"dynamic": false,
 							"properties": {
-							  "country": {
-								"type": "text",
-								"index": false
-							  },
-							  "id": {
-								"type": "keyword"
-							  },
-							  "portCode": {
-								"type": "keyword"
-							  },
-							  "portName": {
-								"type": "text"
-							  },
-							  "region": {
-								"type": "text",
-								"index": false
-							  }
+								"isRead": {
+									"type": "boolean",
+									"index": true
+								}
 							}
 						  },
 						  "settings": {
@@ -637,7 +512,7 @@ func TestCreateUpdateIndex(t *testing.T) {
 					Responce:     `{}`,
 				},
 			},
-			Err: fmt.Errorf("can't update ES index: elastic: Error 500 (Internal Server Error)"),
+			Err: fmt.Errorf("can't update ES index settings: elastic: Error 500 (Internal Server Error)"),
 		},
 		{
 			//Successfull index creation
@@ -767,6 +642,277 @@ func TestCreateUpdateIndex(t *testing.T) {
 				},
 			},
 			Err: fmt.Errorf("can't acknowledge ES index creation"),
+		},
+		{
+			//Successfull Mappings Update
+			Index: &xov1alpha1.ElasticSearchIndex{
+				Spec: xov1alpha1.ElasticSearchIndexSpec{
+					Name:         "some_index",
+					DropOnDelete: true,
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfReplicas: 1,
+						NumOfShards:   32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  },
+						  "createdAt": {
+							"type": "date",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			R2R: map[int]Responce2Req{
+				1: {
+					RequestURI:   "/some_index",
+					ResponceCode: 200,
+					Responce: `
+					{
+						"some_index": {
+						  "aliases": {},
+						  "mappings": {
+							"_meta": {
+							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
+							},
+							"properties": {
+							  "country": {
+								"type": "text",
+								"index": false
+							  },
+							  "id": {
+								"type": "keyword"
+							  }
+							}
+						  },
+						  "settings": {
+							"index": {
+							  "creation_date": "1581606515721",
+							  "number_of_shards": "32",
+							  "number_of_replicas": "1",
+							  "uuid": "iQXnF_YMTKqminns7h0-Zw",
+							  "version": {
+								"created": "7050299"
+							  },
+							  "provided_name": "some_index"
+							}
+						  }
+						}
+					  }
+					`,
+				},
+				2: {
+					RequestURI:   "/some_index/_mapping",
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":true}`,
+				},
+			},
+			Msg: "successfully updated ES index some_index",
+		},
+		{
+			//Un-successfull Mappings Update
+			Index: &xov1alpha1.ElasticSearchIndex{
+				Spec: xov1alpha1.ElasticSearchIndexSpec{
+					Name:         "some_index",
+					DropOnDelete: true,
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfReplicas: 1,
+						NumOfShards:   32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			R2R: map[int]Responce2Req{
+				1: {
+					RequestURI:   "/some_index",
+					ResponceCode: 200,
+					Responce: `
+					{
+						"some_index": {
+						  "aliases": {},
+						  "mappings": {
+							"_meta": {
+							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
+							},
+							"properties": {
+							  "country": {
+								"type": "text",
+								"index": false
+							  }
+							}
+						  },
+						  "settings": {
+							"index": {
+							  "creation_date": "1581606515721",
+							  "number_of_shards": "32",
+							  "number_of_replicas": "1",
+							  "uuid": "iQXnF_YMTKqminns7h0-Zw",
+							  "version": {
+								"created": "7050299"
+							  },
+							  "provided_name": "some_index"
+							}
+						  }
+						}
+					  }
+					`,
+				},
+				2: {
+					RequestURI:   "/some_index/_mapping",
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":false}`,
+				},
+			},
+			Err: fmt.Errorf("can't acknowledge ES index mapping update"),
+		},
+		{
+			//Un-successfull Mappings Update from server side
+			Index: &xov1alpha1.ElasticSearchIndex{
+				Spec: xov1alpha1.ElasticSearchIndexSpec{
+					Name:         "some_index",
+					DropOnDelete: true,
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfReplicas: 1,
+						NumOfShards:   32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"properties": {
+						  "isRead": {
+							"type": "boolean",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			R2R: map[int]Responce2Req{
+				1: {
+					RequestURI:   "/some_index",
+					ResponceCode: 200,
+					Responce: `
+					{
+						"some_index": {
+						  "aliases": {},
+						  "mappings": {
+							"_meta": {
+							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
+							},
+							"properties": {
+							  "country": {
+								"type": "text",
+								"index": false
+							  }
+							}
+						  },
+						  "settings": {
+							"index": {
+							  "creation_date": "1581606515721",
+							  "number_of_shards": "32",
+							  "number_of_replicas": "1",
+							  "uuid": "iQXnF_YMTKqminns7h0-Zw",
+							  "version": {
+								"created": "7050299"
+							  },
+							  "provided_name": "some_index"
+							}
+						  }
+						}
+					  }
+					`,
+				},
+				2: {
+					RequestURI:   "/some_index/_mapping",
+					ResponceCode: 500,
+					Responce:     `{"error":true}`,
+				},
+			},
+			Err: fmt.Errorf("can't update ES index mapping: elastic: Error 500 (Internal Server Error)"),
+		},
+		{
+			//Incorrect Mappings
+			Index: &xov1alpha1.ElasticSearchIndex{
+				Spec: xov1alpha1.ElasticSearchIndexSpec{
+					Name:         "some_index",
+					DropOnDelete: true,
+					Settings: xov1alpha1.ESIndexSettings{
+						NumOfReplicas: 1,
+						NumOfShards:   32,
+					},
+					Mappings: `
+					{
+						"dynamic": false,
+						"properties": {
+						  "isRead": { dddddddddd
+							"type": "boolean",
+							"index": true
+						  }
+						}
+					  }
+					`,
+				},
+			},
+			R2R: map[int]Responce2Req{
+				1: {
+					RequestURI:   "/some_index",
+					ResponceCode: 200,
+					Responce: `
+					{
+						"some_index": {
+						  "aliases": {},
+						  "mappings": {
+							"_meta": {
+							  "managed-by": "elasticsearch-objects-operator.xo.90poe.io"
+							},
+							"properties": {
+							  "country": {
+								"type": "text",
+								"index": false
+							  }
+							}
+						  },
+						  "settings": {
+							"index": {
+							  "creation_date": "1581606515721",
+							  "number_of_shards": "32",
+							  "number_of_replicas": "1",
+							  "uuid": "iQXnF_YMTKqminns7h0-Zw",
+							  "version": {
+								"created": "7050299"
+							  },
+							  "provided_name": "some_index"
+							}
+						  }
+						}
+					  }
+					`,
+				},
+				2: {
+					RequestURI:   "/some_index/_mapping",
+					ResponceCode: 200,
+					Responce:     `{"acknowledged":false}`,
+				},
+			},
+			Err: fmt.Errorf("can't add managed-by 2 ES index: can't json unmarshal mappings: invalid character 'd' looking for beginning of object key string"),
 		},
 	}
 	for _, test := range tests {

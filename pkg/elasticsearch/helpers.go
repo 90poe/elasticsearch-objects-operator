@@ -3,13 +3,32 @@ package elasticsearch
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
 	"github.com/90poe/elasticsearch-objects-operator/pkg/consts"
 )
+
+func diffMappings(old map[string]interface{}, new map[string]interface{}) (bool, error) {
+	newSetKeys := getKeysFromSettings("", new)
+	for _, newSetKey := range newSetKeys {
+		// Normalize all settings as strings
+		oldVal, ok := getStringValueFromSettings(old, newSetKey)
+		if !ok {
+			// No such value in K8S settings
+			return true, nil
+		}
+		newVal, ok := getStringValueFromSettings(new, newSetKey)
+		if !ok {
+			return false, fmt.Errorf("can't get new settings for path %s", newSetKey)
+		}
+		if oldVal != newVal {
+			return true, nil
+		}
+	}
+	return false, nil
+}
 
 func diffSettings(k8sSett *xov1alpha1.ESIndexSettings,
 	servSettings map[string]interface{}, index bool) (bool, error) {
@@ -52,26 +71,19 @@ func diffSettings(k8sSett *xov1alpha1.ESIndexSettings,
 	return false, nil
 }
 
-func addManagedBy2Interface(src string) (interface{}, error) {
-	var inter interface{}
+func addManagedBy2Interface(src string) (map[string]interface{}, error) {
+	var inter map[string]interface{}
 	err := json.Unmarshal([]byte(src), &inter)
 	if err != nil {
 		return nil, fmt.Errorf("can't json unmarshal mappings: %w", err)
 	}
-	if reflect.ValueOf(inter).Kind() != reflect.Map {
-		return nil, fmt.Errorf("expected map")
-	}
-	m, ok := inter.(map[string]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid src map")
-	}
-	meta, ok := m["_meta"]
+	meta, ok := inter["_meta"]
 	if !ok {
 		//Adding required managed-by
-		m["_meta"] = map[string]interface{}{
+		inter["_meta"] = map[string]interface{}{
 			"managed-by": "elasticsearch-objects-operator.xo.90poe.io",
 		}
-		return m, nil
+		return inter, nil
 	}
 	metaMap, ok := meta.(map[string]interface{})
 	if !ok {
@@ -79,7 +91,7 @@ func addManagedBy2Interface(src string) (interface{}, error) {
 	}
 	metaMap["managed-by"] = "elasticsearch-objects-operator.xo.90poe.io"
 
-	return m, nil
+	return inter, nil
 }
 
 // Function would suite both int32 and int64
