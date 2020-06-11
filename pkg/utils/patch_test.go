@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	xov1alpha1 "github.com/90poe/elasticsearch-objects-operator/pkg/apis/xo/v1alpha1"
-	"github.com/movetokube/postgres-operator/pkg/apis/db/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -39,7 +38,7 @@ func TestPatchUtilShouldPatchIfThereIsDifference(t *testing.T) {
 
 	// Create runtime scheme
 	s := scheme.Scheme
-	s.AddKnownTypes(v1alpha1.SchemeGroupVersion, &xov1alpha1.ElasticSearchIndex{})
+	s.AddKnownTypes(xov1alpha1.SchemeGroupVersion, &xov1alpha1.ElasticSearchIndex{})
 
 	// Create fake client to mock API calls
 	cl := fake.NewFakeClient(objs...)
