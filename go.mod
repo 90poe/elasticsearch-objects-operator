@@ -6,8 +6,8 @@ require (
 	github.com/go-logr/logr v1.4.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/olivere/elastic/v7 v7.0.32
-	github.com/onsi/ginkgo/v2 v2.14.0
-	github.com/onsi/gomega v1.30.0
+	github.com/onsi/ginkgo/v2 v2.15.0
+	github.com/onsi/gomega v1.31.1
 	github.com/slack-go/slack v0.12.3
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/mock v0.4.0
