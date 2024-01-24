@@ -1,0 +1,51 @@
+---
+apiVersion: xo.90poe.io/v1alpha1
+kind: ElasticSearchIndex
+metadata:
+  name: "people-indexer-v0-0"
+  namespace: "default"
+  labels:
+    app: "people-indexer-v0"
+    appNoVersion: "people-indexer"
+    version: "v0"
+spec:
+  name: "dev_sample"
+  settings:
+    number_of_shards: 1
+    number_of_replicas: 2
+    max_result_window: 60000
+  mappings: >
+    {
+      "properties": {
+        "id": {
+          "type": "text"
+        },
+        "account_id": {
+          "type": "keyword"
+        },
+        "crew_number": {
+          "type": "keyword"
+        },
+        "crew_number_as_number": {
+          "type": "long"
+        },
+        "given_name": {
+          "type": "text",
+          "analyzer": "simple"
+        },
+        "family_name": {
+          "type": "text",
+          "analyzer": "simple"
+        },
+        "date_of_birth": {
+          "type": "date",
+          "format": "strict_date_optional_time||epoch_millis"
+        },
+        "nationality_id": {
+          "type": "keyword"
+        },
+        "current_joining_date": {
+          "type": "date"
+        }
+      }
+    }

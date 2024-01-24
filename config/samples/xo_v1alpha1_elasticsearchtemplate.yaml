@@ -1,0 +1,12 @@
+apiVersion: xo.90poe.io/v1alpha1
+kind: ElasticSearchTemplate
+metadata:
+  labels:
+    app.kubernetes.io/name: elasticsearchtemplate
+    app.kubernetes.io/instance: elasticsearchtemplate-sample
+    app.kubernetes.io/part-of: elasticsearch-objects-operator-new
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: elasticsearch-objects-operator-new
+  name: elasticsearchtemplate-sample
+spec:
+  # TODO(user): Add fields here

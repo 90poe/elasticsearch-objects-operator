@@ -1,0 +1,31 @@
+# permissions for end users to edit elasticsearchtemplates.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: elasticsearchtemplate-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: elasticsearch-objects-operator-new
+    app.kubernetes.io/part-of: elasticsearch-objects-operator-new
+    app.kubernetes.io/managed-by: kustomize
+  name: elasticsearchtemplate-editor-role
+rules:
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchtemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchtemplates/status
+  verbs:
+  - get

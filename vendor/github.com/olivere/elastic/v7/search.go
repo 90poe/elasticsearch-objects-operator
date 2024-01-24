@@ -152,6 +152,19 @@ func (s *SearchService) Collapse(collapse *CollapseBuilder) *SearchService {
 	return s
 }
 
+// PointInTime specifies an optional PointInTime to be used in the context
+// of this search.
+func (s *SearchService) PointInTime(pointInTime *PointInTime) *SearchService {
+	s.searchSource = s.searchSource.PointInTime(pointInTime)
+	return s
+}
+
+// RuntimeMappings specifies optional runtime mappings.
+func (s *SearchService) RuntimeMappings(runtimeMappings RuntimeMappings) *SearchService {
+	s.searchSource = s.searchSource.RuntimeMappings(runtimeMappings)
+	return s
+}
+
 // TimeoutInMillis sets the timeout in milliseconds.
 func (s *SearchService) TimeoutInMillis(timeoutInMillis int) *SearchService {
 	s.searchSource = s.searchSource.TimeoutInMillis(timeoutInMillis)
@@ -445,9 +458,16 @@ func (s *SearchService) TypedKeys(enabled bool) *SearchService {
 	return s
 }
 
-// SeqNoPrimaryTerm specifies whether to return sequence number and
-// primary term of the last modification of each hit.
+// SeqNoPrimaryTerm is an alias for SeqNoAndPrimaryTerm.
+//
+// Deprecated: Use SeqNoAndPrimaryTerm.
 func (s *SearchService) SeqNoPrimaryTerm(enabled bool) *SearchService {
+	return s.SeqNoAndPrimaryTerm(enabled)
+}
+
+// SeqNoAndPrimaryTerm specifies whether to return sequence number and
+// primary term of the last modification of each hit.
+func (s *SearchService) SeqNoAndPrimaryTerm(enabled bool) *SearchService {
 	s.seqNoPrimaryTerm = &enabled
 	return s
 }
@@ -641,20 +661,21 @@ func (s *SearchService) Do(ctx context.Context) (*SearchResult, error) {
 
 // SearchResult is the result of a search in Elasticsearch.
 type SearchResult struct {
-	Header          http.Header            `json:"-"`
-	TookInMillis    int64                  `json:"took,omitempty"`             // search time in milliseconds
-	TerminatedEarly bool                   `json:"terminated_early,omitempty"` // request terminated early
-	NumReducePhases int                    `json:"num_reduce_phases,omitempty"`
-	Clusters        []*SearchResultCluster `json:"_clusters,omitempty"`    // 6.1.0+
-	ScrollId        string                 `json:"_scroll_id,omitempty"`   // only used with Scroll and Scan operations
-	Hits            *SearchHits            `json:"hits,omitempty"`         // the actual search hits
-	Suggest         SearchSuggest          `json:"suggest,omitempty"`      // results from suggesters
-	Aggregations    Aggregations           `json:"aggregations,omitempty"` // results from aggregations
-	TimedOut        bool                   `json:"timed_out,omitempty"`    // true if the search timed out
-	Error           *ErrorDetails          `json:"error,omitempty"`        // only used in MultiGet
-	Profile         *SearchProfile         `json:"profile,omitempty"`      // profiling results, if optional Profile API was active for this search
-	Shards          *ShardsInfo            `json:"_shards,omitempty"`      // shard information
-	Status          int                    `json:"status,omitempty"`       // used in MultiSearch
+	Header          http.Header          `json:"-"`
+	TookInMillis    int64                `json:"took,omitempty"`             // search time in milliseconds
+	TerminatedEarly bool                 `json:"terminated_early,omitempty"` // request terminated early
+	NumReducePhases int                  `json:"num_reduce_phases,omitempty"`
+	Clusters        *SearchResultCluster `json:"_clusters,omitempty"`    // 6.1.0+
+	ScrollId        string               `json:"_scroll_id,omitempty"`   // only used with Scroll and Scan operations
+	Hits            *SearchHits          `json:"hits,omitempty"`         // the actual search hits
+	Suggest         SearchSuggest        `json:"suggest,omitempty"`      // results from suggesters
+	Aggregations    Aggregations         `json:"aggregations,omitempty"` // results from aggregations
+	TimedOut        bool                 `json:"timed_out,omitempty"`    // true if the search timed out
+	Error           *ErrorDetails        `json:"error,omitempty"`        // only used in MultiGet
+	Profile         *SearchProfile       `json:"profile,omitempty"`      // profiling results, if optional Profile API was active for this search
+	Shards          *ShardsInfo          `json:"_shards,omitempty"`      // shard information
+	Status          int                  `json:"status,omitempty"`       // used in MultiSearch
+	PitId           string               `json:"pit_id,omitempty"`       // Point In Time ID
 }
 
 // SearchResultCluster holds information about a search response
@@ -669,7 +690,7 @@ type SearchResultCluster struct {
 // a search result. The return value might not be accurate, unless
 // track_total_hits parameter has set to true.
 func (r *SearchResult) TotalHits() int64 {
-	if r.Hits != nil && r.Hits.TotalHits != nil {
+	if r != nil && r.Hits != nil && r.Hits.TotalHits != nil {
 		return r.Hits.TotalHits.Value
 	}
 	return 0
@@ -683,7 +704,7 @@ func (r *SearchResult) Each(typ reflect.Type) []interface{} {
 	if r.Hits == nil || r.Hits.Hits == nil || len(r.Hits.Hits) == 0 {
 		return nil
 	}
-	var slice []interface{}
+	slice := make([]interface{}, 0, len(r.Hits.Hits))
 	for _, hit := range r.Hits.Hits {
 		v := reflect.New(typ).Elem()
 		if hit.Source == nil {
@@ -717,6 +738,30 @@ type TotalHits struct {
 	Relation string `json:"relation"` // how the value should be interpreted: accurate ("eq") or a lower bound ("gte")
 }
 
+// UnmarshalJSON into TotalHits, accepting both the new response structure
+// in ES 7.x as well as the older response structure in earlier versions.
+// The latter can be enabled with RestTotalHitsAsInt(true).
+func (h *TotalHits) UnmarshalJSON(data []byte) error {
+	if data == nil || string(data) == "null" {
+		return nil
+	}
+	var v struct {
+		Value    int64  `json:"value"`    // value of the total hit count
+		Relation string `json:"relation"` // how the value should be interpreted: accurate ("eq") or a lower bound ("gte")
+	}
+	if err := json.Unmarshal(data, &v); err != nil {
+		var count int64
+		if err2 := json.Unmarshal(data, &count); err2 != nil {
+			return err // return inner error
+		}
+		h.Value = count
+		h.Relation = "eq"
+		return nil
+	}
+	*h = v
+	return nil
+}
+
 // SearchHit is a single hit.
 type SearchHit struct {
 	Score          *float64                       `json:"_score,omitempty"`   // computed score
@@ -732,7 +777,7 @@ type SearchHit struct {
 	Sort           []interface{}                  `json:"sort,omitempty"`            // sort information
 	Highlight      SearchHitHighlight             `json:"highlight,omitempty"`       // highlighter information
 	Source         json.RawMessage                `json:"_source,omitempty"`         // stored document source
-	Fields         map[string]interface{}         `json:"fields,omitempty"`          // returned (stored) fields
+	Fields         SearchHitFields                `json:"fields,omitempty"`          // returned (stored) fields
 	Explanation    *SearchExplanation             `json:"_explanation,omitempty"`    // explains how the score was computed
 	MatchedQueries []string                       `json:"matched_queries,omitempty"` // matched queries
 	InnerHits      map[string]*SearchHitInnerHits `json:"inner_hits,omitempty"`      // inner hits with ES >= 1.5.0
@@ -743,6 +788,43 @@ type SearchHit struct {
 	// HighlightFields
 	// SortValues
 	// MatchedFilters
+}
+
+// SearchHitFields helps to simplify resolving slices of specific types.
+type SearchHitFields map[string]interface{}
+
+// Strings returns a slice of strings for the given field, if there is any
+// such field in the hit. The method ignores elements that are not of type
+// string.
+func (f SearchHitFields) Strings(fieldName string) ([]string, bool) {
+	slice, ok := f[fieldName].([]interface{})
+	if !ok {
+		return nil, false
+	}
+	results := make([]string, 0, len(slice))
+	for _, item := range slice {
+		if v, ok := item.(string); ok {
+			results = append(results, v)
+		}
+	}
+	return results, true
+}
+
+// Float64s returns a slice of float64's for the given field, if there is any
+// such field in the hit. The method ignores elements that are not of
+// type float64.
+func (f SearchHitFields) Float64s(fieldName string) ([]float64, bool) {
+	slice, ok := f[fieldName].([]interface{})
+	if !ok {
+		return nil, false
+	}
+	results := make([]float64, 0, len(slice))
+	for _, item := range slice {
+		if v, ok := item.(float64); ok {
+			results = append(results, v)
+		}
+	}
+	return results, true
 }
 
 // SearchHitInnerHits is used for inner hits.
@@ -801,6 +883,7 @@ type SearchProfileShardResult struct {
 	ID           string                    `json:"id"`
 	Searches     []QueryProfileShardResult `json:"searches"`
 	Aggregations []ProfileResult           `json:"aggregations"`
+	Fetch        *ProfileResult            `json:"fetch"`
 }
 
 // QueryProfileShardResult is a container class to hold the profile results
@@ -826,12 +909,13 @@ type CollectorResult struct {
 // ProfileResult is the internal representation of a profiled query,
 // corresponding to a single node in the query tree.
 type ProfileResult struct {
-	Type          string           `json:"type"`
-	Description   string           `json:"description,omitempty"`
-	NodeTime      string           `json:"time,omitempty"`
-	NodeTimeNanos int64            `json:"time_in_nanos,omitempty"`
-	Breakdown     map[string]int64 `json:"breakdown,omitempty"`
-	Children      []ProfileResult  `json:"children,omitempty"`
+	Type          string                 `json:"type"`
+	Description   string                 `json:"description,omitempty"`
+	NodeTime      string                 `json:"time,omitempty"`
+	NodeTimeNanos int64                  `json:"time_in_nanos,omitempty"`
+	Breakdown     map[string]int64       `json:"breakdown,omitempty"`
+	Children      []ProfileResult        `json:"children,omitempty"`
+	Debug         map[string]interface{} `json:"debug,omitempty"`
 }
 
 // Aggregations (see search_aggs.go)

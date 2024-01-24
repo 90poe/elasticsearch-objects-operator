@@ -10,11 +10,12 @@ package elastic
 // For more details, see
 // https://www.elastic.co/guide/en/elasticsearch/reference/7.0/query-dsl-prefix-query.html
 type PrefixQuery struct {
-	name      string
-	prefix    string
-	boost     *float64
-	rewrite   string
-	queryName string
+	name            string
+	prefix          string
+	boost           *float64
+	rewrite         string
+	caseInsensitive *bool
+	queryName       string
 }
 
 // NewPrefixQuery creates and initializes a new PrefixQuery.
@@ -33,6 +34,11 @@ func (q *PrefixQuery) Rewrite(rewrite string) *PrefixQuery {
 	return q
 }
 
+func (q *PrefixQuery) CaseInsensitive(caseInsensitive bool) *PrefixQuery {
+	q.caseInsensitive = &caseInsensitive
+	return q
+}
+
 // QueryName sets the query name for the filter that can be used when
 // searching for matched_filters per hit.
 func (q *PrefixQuery) QueryName(queryName string) *PrefixQuery {
@@ -46,7 +52,7 @@ func (q *PrefixQuery) Source() (interface{}, error) {
 	query := make(map[string]interface{})
 	source["prefix"] = query
 
-	if q.boost == nil && q.rewrite == "" && q.queryName == "" {
+	if q.boost == nil && q.rewrite == "" && q.queryName == "" && q.caseInsensitive == nil {
 		query[q.name] = q.prefix
 	} else {
 		subQuery := make(map[string]interface{})
@@ -56,6 +62,9 @@ func (q *PrefixQuery) Source() (interface{}, error) {
 		}
 		if q.rewrite != "" {
 			subQuery["rewrite"] = q.rewrite
+		}
+		if q.caseInsensitive != nil {
+			subQuery["case_insensitive"] = *q.caseInsensitive
 		}
 		if q.queryName != "" {
 			subQuery["_name"] = q.queryName

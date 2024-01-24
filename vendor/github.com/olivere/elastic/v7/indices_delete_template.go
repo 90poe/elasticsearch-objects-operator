@@ -14,8 +14,16 @@ import (
 	"github.com/olivere/elastic/v7/uritemplates"
 )
 
-// IndicesDeleteTemplateService deletes index templates.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/indices-templates.html.
+// IndicesDeleteTemplateService deletes templates.
+//
+// Index templates have changed during in 7.8 update of Elasticsearch.
+// This service implements the legacy version (7.7 or lower). If you want
+// the new version, please use the IndicesDeleteIndexTemplateService.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-delete-template-v1.html
+// for more details.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 type IndicesDeleteTemplateService struct {
 	client *Client
 
@@ -141,6 +149,8 @@ func (s *IndicesDeleteTemplateService) Validate() error {
 }
 
 // Do executes the operation.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (s *IndicesDeleteTemplateService) Do(ctx context.Context) (*IndicesDeleteTemplateResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
