@@ -12,7 +12,7 @@ rules:
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkaschemas
+  - elasticsearchindices
   verbs:
   - create
   - delete
@@ -24,13 +24,13 @@ rules:
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkaschemas/finalizers
+  - elasticsearchindices/finalizers
   verbs:
   - update
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkaschemas/status
+  - elasticsearchindices/status
   verbs:
   - get
   - patch
@@ -38,7 +38,7 @@ rules:
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkatopics
+  - elasticsearchtemplates
   verbs:
   - create
   - delete
@@ -50,13 +50,13 @@ rules:
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkatopics/finalizers
+  - elasticsearchtemplates/finalizers
   verbs:
   - update
 - apiGroups:
   - xo.90poe.io
   resources:
-  - kafkatopics/status
+  - elasticsearchtemplates/status
   verbs:
   - get
   - patch
