@@ -28,7 +28,7 @@ jobs:
       - name: Create valid tag(s)
         id: tags
         run: |
-          name="90poe/kafkaobjects-operator"
+          name="90poe/elasticsearch-object-operator"
           output="$name:${{ steps.tagName.outputs.tag }},$name:latest"
 
           echo "::set-output name=all_tags::${output}"
