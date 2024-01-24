@@ -79,7 +79,7 @@ jobs:
           context: ./
           builder: ${{ steps.buildx.outputs.name }}
           platforms: 'linux/amd64,linux/arm64'
-          tags: elasticsearch-object-operator:dev
+          tags: elasticsearch-objects-operator:dev
           file: Dockerfile
           push: false
 
