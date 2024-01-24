@@ -1,0 +1,27 @@
+# permissions for end users to view elasticsearchindices.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: elasticsearchindex-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: elasticsearch-objects-operator-new
+    app.kubernetes.io/part-of: elasticsearch-objects-operator-new
+    app.kubernetes.io/managed-by: kustomize
+  name: elasticsearchindex-viewer-role
+rules:
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchindices
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchindices/status
+  verbs:
+  - get

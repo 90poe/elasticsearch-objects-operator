@@ -14,6 +14,7 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -25,7 +26,7 @@ import (
 
 const (
 	// Version is the current version of Elastic.
-	Version = "7.0.12"
+	Version = "7.0.32"
 
 	// DefaultURL is the default endpoint of Elasticsearch on the local machine.
 	// It is used e.g. when initializing a new Client without a specific URL.
@@ -83,6 +84,9 @@ const (
 )
 
 var (
+	// nilByte is used in JSON marshal/unmarshal
+	nilByte = []byte("null")
+
 	// ErrNoClient is raised when no Elasticsearch node is available.
 	ErrNoClient = errors.New("no Elasticsearch node available")
 
@@ -139,13 +143,13 @@ type Client struct {
 	snifferCallback           SnifferCallback // callback to modify the sniffing decision
 	snifferStop               chan bool       // notify sniffer to stop, and notify back
 	decoder                   Decoder         // used to decode data sent from Elasticsearch
-	basicAuth                 bool            // indicates whether to send HTTP Basic Auth credentials
 	basicAuthUsername         string          // username for HTTP Basic Auth
 	basicAuthPassword         string          // password for HTTP Basic Auth
 	sendGetBodyAs             string          // override for when sending a GET with a body
 	gzipEnabled               bool            // gzip compression enabled or disabled (default)
 	requiredPlugins           []string        // list of required plugins
 	retrier                   Retrier         // strategy for retries
+	retryStatusCodes          []int           // HTTP status codes where to retry automatically (with retrier)
 	headers                   http.Header     // a list of default headers to add to each request
 }
 
@@ -248,6 +252,7 @@ func NewSimpleClient(options ...ClientOptionFunc) (*Client, error) {
 		sendGetBodyAs:             DefaultSendGetBodyAs,
 		gzipEnabled:               DefaultGzipEnabled,
 		retrier:                   noRetries, // no retries by default
+		retryStatusCodes:          nil,       // no automatic retries for specific HTTP status codes
 		deprecationlog:            noDeprecationLog,
 	}
 
@@ -265,11 +270,10 @@ func NewSimpleClient(options ...ClientOptionFunc) (*Client, error) {
 	c.urls = canonicalize(c.urls...)
 
 	// If the URLs have auth info, use them here as an alternative to SetBasicAuth
-	if !c.basicAuth {
+	if c.basicAuthUsername == "" && c.basicAuthPassword == "" {
 		for _, urlStr := range c.urls {
 			u, err := url.Parse(urlStr)
 			if err == nil && u.User != nil {
-				c.basicAuth = true
 				c.basicAuthUsername = u.User.Username()
 				c.basicAuthPassword, _ = u.User.Password()
 				break
@@ -334,6 +338,7 @@ func DialContext(ctx context.Context, options ...ClientOptionFunc) (*Client, err
 		sendGetBodyAs:             DefaultSendGetBodyAs,
 		gzipEnabled:               DefaultGzipEnabled,
 		retrier:                   noRetries, // no retries by default
+		retryStatusCodes:          nil,       // no automatic retries for specific HTTP status codes
 		deprecationlog:            noDeprecationLog,
 	}
 
@@ -351,11 +356,10 @@ func DialContext(ctx context.Context, options ...ClientOptionFunc) (*Client, err
 	c.urls = canonicalize(c.urls...)
 
 	// If the URLs have auth info, use them here as an alternative to SetBasicAuth
-	if !c.basicAuth {
+	if c.basicAuthUsername == "" && c.basicAuthPassword == "" {
 		for _, urlStr := range c.urls {
 			u, err := url.Parse(urlStr)
 			if err == nil && u.User != nil {
-				c.basicAuth = true
 				c.basicAuthUsername = u.User.Username()
 				c.basicAuthPassword, _ = u.User.Password()
 				break
@@ -490,7 +494,6 @@ func SetBasicAuth(username, password string) ClientOptionFunc {
 	return func(c *Client) error {
 		c.basicAuthUsername = username
 		c.basicAuthPassword = password
-		c.basicAuth = c.basicAuthUsername != "" || c.basicAuthPassword != ""
 		return nil
 	}
 }
@@ -505,6 +508,12 @@ func SetURL(urls ...string) ClientOptionFunc {
 			c.urls = []string{DefaultURL}
 		default:
 			c.urls = urls
+		}
+		// Check URLs
+		for _, urlStr := range c.urls {
+			if _, err := url.Parse(urlStr); err != nil {
+				return err
+			}
 		}
 		return nil
 	}
@@ -720,6 +729,17 @@ func SetRetrier(retrier Retrier) ClientOptionFunc {
 			retrier = noRetries // no retries by default
 		}
 		c.retrier = retrier
+		return nil
+	}
+}
+
+// SetRetryStatusCodes specifies the HTTP status codes where the client
+// will retry automatically. Notice that retries call the specified retrier,
+// so calling SetRetryStatusCodes without setting a Retrier won't do anything
+// for retries.
+func SetRetryStatusCodes(statusCodes ...int) ClientOptionFunc {
+	return func(c *Client) error {
+		c.retryStatusCodes = statusCodes
 		return nil
 	}
 }
@@ -962,10 +982,14 @@ func (c *Client) sniffNode(ctx context.Context, url string) []*conn {
 	}
 
 	c.mu.RLock()
-	if c.basicAuth {
+	if c.basicAuthUsername != "" || c.basicAuthPassword != "" {
 		req.SetBasicAuth(c.basicAuthUsername, c.basicAuthPassword)
 	}
 	c.mu.RUnlock()
+
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Add("User-Agent", "elastic/"+Version+" ("+runtime.GOOS+"-"+runtime.GOARCH+")")
+	}
 
 	res, err := c.c.Do((*http.Request)(req).WithContext(ctx))
 	if err != nil {
@@ -1076,7 +1100,8 @@ func (c *Client) healthcheck(parentCtx context.Context, timeout time.Duration, f
 		c.mu.RUnlock()
 		return
 	}
-	basicAuth := c.basicAuth
+	headers := c.headers
+	basicAuth := c.basicAuthUsername != "" || c.basicAuthPassword != ""
 	basicAuthUsername := c.basicAuthUsername
 	basicAuthPassword := c.basicAuthPassword
 	c.mu.RUnlock()
@@ -1101,6 +1126,16 @@ func (c *Client) healthcheck(parentCtx context.Context, timeout time.Duration, f
 			}
 			if basicAuth {
 				req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
+			}
+			if len(headers) > 0 {
+				for key, values := range headers {
+					for _, v := range values {
+						req.Header.Add(key, v)
+					}
+				}
+			}
+			if req.Header.Get("User-Agent") == "" {
+				req.Header.Add("User-Agent", "elastic/"+Version+" ("+runtime.GOOS+"-"+runtime.GOARCH+")")
 			}
 			res, err := c.c.Do((*http.Request)(req).WithContext(ctx))
 			if res != nil {
@@ -1138,7 +1173,8 @@ func (c *Client) healthcheck(parentCtx context.Context, timeout time.Duration, f
 func (c *Client) startupHealthcheck(parentCtx context.Context, timeout time.Duration) error {
 	c.mu.Lock()
 	urls := c.urls
-	basicAuth := c.basicAuth
+	headers := c.headers
+	basicAuth := c.basicAuthUsername != "" || c.basicAuthPassword != ""
 	basicAuthUsername := c.basicAuthUsername
 	basicAuthPassword := c.basicAuthPassword
 	c.mu.Unlock()
@@ -1156,14 +1192,23 @@ func (c *Client) startupHealthcheck(parentCtx context.Context, timeout time.Dura
 			if basicAuth {
 				req.SetBasicAuth(basicAuthUsername, basicAuthPassword)
 			}
+			if len(headers) > 0 {
+				for key, values := range headers {
+					for _, v := range values {
+						req.Header.Add(key, v)
+					}
+				}
+			}
 			ctx, cancel := context.WithTimeout(parentCtx, timeout)
 			defer cancel()
 			req = req.WithContext(ctx)
 			res, err := c.c.Do(req)
-			if err == nil && res != nil && res.StatusCode >= 200 && res.StatusCode < 300 {
-				return nil
-			} else if err != nil {
+			if err != nil {
 				lastErr = err
+			} else if res.StatusCode >= 200 && res.StatusCode < 300 {
+				return nil
+			} else if res.StatusCode == http.StatusUnauthorized {
+				lastErr = &Error{Status: res.StatusCode}
 			}
 		}
 		select {
@@ -1177,7 +1222,7 @@ func (c *Client) startupHealthcheck(parentCtx context.Context, timeout time.Dura
 		}
 	}
 	if lastErr != nil {
-		if IsContextErr(lastErr) {
+		if IsContextErr(lastErr) || IsUnauthorized(lastErr) {
 			return lastErr
 		}
 		return errors.Wrapf(ErrNoClient, "health check timeout: %v", lastErr)
@@ -1242,15 +1287,17 @@ func (c *Client) mustActiveConn() error {
 
 // PerformRequestOptions must be passed into PerformRequest.
 type PerformRequestOptions struct {
-	Method          string
-	Path            string
-	Params          url.Values
-	Body            interface{}
-	ContentType     string
-	IgnoreErrors    []int
-	Retrier         Retrier
-	Headers         http.Header
-	MaxResponseSize int64
+	Method           string
+	Path             string
+	Params           url.Values
+	Body             interface{}
+	ContentType      string
+	IgnoreErrors     []int
+	Retrier          Retrier
+	RetryStatusCodes []int
+	Headers          http.Header
+	MaxResponseSize  int64
+	Stream           bool
 }
 
 // PerformRequest does a HTTP request to Elasticsearch.
@@ -1259,12 +1306,15 @@ type PerformRequestOptions struct {
 // Optionally, a list of HTTP error codes to ignore can be passed.
 // This is necessary for services that expect e.g. HTTP status 404 as a
 // valid outcome (Exists, IndicesExists, IndicesTypeExists).
+//
+// If Stream is set, the returned BodyReader field must be closed, even
+// if PerformRequest returns an error.
 func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) (*Response, error) {
 	start := time.Now().UTC()
 
 	c.mu.RLock()
 	timeout := c.healthcheckTimeout
-	basicAuth := c.basicAuth
+	basicAuth := c.basicAuthUsername != "" || c.basicAuthPassword != ""
 	basicAuthUsername := c.basicAuthUsername
 	basicAuthPassword := c.basicAuthPassword
 	sendGetBodyAs := c.sendGetBodyAs
@@ -1274,8 +1324,22 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 	if opt.Retrier != nil {
 		retrier = opt.Retrier
 	}
+	retryStatusCodes := c.retryStatusCodes
+	if opt.RetryStatusCodes != nil {
+		retryStatusCodes = opt.RetryStatusCodes
+	}
 	defaultHeaders := c.headers
 	c.mu.RUnlock()
+
+	// retry returns true if statusCode indicates the request is to be retried
+	retry := func(statusCode int) bool {
+		for _, code := range retryStatusCodes {
+			if code == statusCode {
+				return true
+			}
+		}
+		return false
+	}
 
 	var err error
 	var conn *conn
@@ -1334,11 +1398,9 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 		if opt.ContentType != "" {
 			req.Header.Set("Content-Type", opt.ContentType)
 		}
-		if len(opt.Headers) > 0 {
-			for key, value := range opt.Headers {
-				for _, v := range value {
-					req.Header.Add(key, v)
-				}
+		for key, value := range opt.Headers {
+			for _, v := range value {
+				req.Header.Add(key, v)
 			}
 		}
 		if len(defaultHeaders) > 0 {
@@ -1347,6 +1409,9 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 					req.Header.Add(key, v)
 				}
 			}
+		}
+		if req.Header.Get("User-Agent") == "" {
+			req.Header.Set("User-Agent", "elastic/"+Version+" ("+runtime.GOOS+"-"+runtime.GOARCH+")")
 		}
 
 		// Set body
@@ -1384,7 +1449,25 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 			time.Sleep(wait)
 			continue // try again
 		}
-		defer res.Body.Close()
+		if retry(res.StatusCode) {
+			n++
+			wait, ok, rerr := retrier.Retry(ctx, n, (*http.Request)(req), res, err)
+			if rerr != nil {
+				c.errorf("elastic: %s is dead", conn.URL())
+				conn.MarkAsDead()
+				return nil, rerr
+			}
+			if ok {
+				// retry
+				retried = true
+				time.Sleep(wait)
+				continue // try again
+			}
+		}
+
+		if !opt.Stream {
+			defer res.Body.Close()
+		}
 
 		// Tracing
 		c.dumpResponse(res)
@@ -1401,14 +1484,14 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 		if err := checkResponse((*http.Request)(req), res, opt.IgnoreErrors...); err != nil {
 			// No retry if request succeeded
 			// We still try to return a response.
-			resp, _ = c.newResponse(res, opt.MaxResponseSize)
+			resp, _ = c.newResponse(res, opt.MaxResponseSize, opt.Stream)
 			return resp, err
 		}
 
 		// We successfully made a request with this connection
 		conn.MarkAsHealthy()
 
-		resp, err = c.newResponse(res, opt.MaxResponseSize)
+		resp, err = c.newResponse(res, opt.MaxResponseSize, opt.Stream)
 		if err != nil {
 			return nil, err
 		}
@@ -1419,7 +1502,7 @@ func (c *Client) PerformRequest(ctx context.Context, opt PerformRequestOptions) 
 	duration := time.Now().UTC().Sub(start)
 	c.infof("%s %s [status:%d, request:%.3fs]",
 		strings.ToUpper(opt.Method),
-		req.URL,
+		req.URL.Redacted(),
 		resp.StatusCode,
 		float64(int64(duration/time.Millisecond))/1000)
 
@@ -1556,6 +1639,16 @@ func (c *Client) ClearScroll(scrollIds ...string) *ClearScrollService {
 	return NewClearScrollService(c).ScrollId(scrollIds...)
 }
 
+// OpenPointInTime opens a new Point in Time.
+func (c *Client) OpenPointInTime(indices ...string) *OpenPointInTimeService {
+	return NewOpenPointInTimeService(c).Index(indices...)
+}
+
+// ClosePointInTime closes an existing Point in Time.
+func (c *Client) ClosePointInTime(id string) *ClosePointInTimeService {
+	return NewClosePointInTimeService(c).ID(id)
+}
+
 // -- Indices APIs --
 
 // CreateIndex returns a service to create a new index.
@@ -1601,11 +1694,17 @@ func (c *Client) CloseIndex(name string) *IndicesCloseService {
 }
 
 // FreezeIndex freezes an index.
+//
+// Deprecated: Frozen indices are deprecated because they provide no benefit
+// given improvements in heap memory utilization.
 func (c *Client) FreezeIndex(name string) *IndicesFreezeService {
 	return NewIndicesFreezeService(c).Index(name)
 }
 
 // UnfreezeIndex unfreezes an index.
+//
+// Deprecated: Frozen indices are deprecated because they provide no benefit
+// given improvements in heap memory utilization.
 func (c *Client) UnfreezeIndex(name string) *IndicesUnfreezeService {
 	return NewIndicesUnfreezeService(c).Index(name)
 }
@@ -1678,28 +1777,112 @@ func (c *Client) Aliases() *AliasesService {
 	return NewAliasesService(c)
 }
 
-// IndexGetTemplate gets an index template.
-// Use XXXTemplate funcs to manage search templates.
+// -- Legacy templates --
+
+// IndexGetTemplate gets an index template (v1/legacy version before 7.8).
+//
+// This service implements the legacy version of index templates as described
+// in https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-templates-v1.html.
+//
+// See e.g. IndexPutIndexTemplate and IndexPutComponentTemplate for the new version(s).
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (c *Client) IndexGetTemplate(names ...string) *IndicesGetTemplateService {
 	return NewIndicesGetTemplateService(c).Name(names...)
 }
 
-// IndexTemplateExists gets check if an index template exists.
-// Use XXXTemplate funcs to manage search templates.
+// IndexTemplateExists gets check if an index template exists (v1/legacy version before 7.8).
+//
+// This service implements the legacy version of index templates as described
+// in https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-templates-v1.html.
+//
+// See e.g. IndexPutIndexTemplate and IndexPutComponentTemplate for the new version(s).
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (c *Client) IndexTemplateExists(name string) *IndicesExistsTemplateService {
 	return NewIndicesExistsTemplateService(c).Name(name)
 }
 
-// IndexPutTemplate creates or updates an index template.
-// Use XXXTemplate funcs to manage search templates.
+// IndexPutTemplate creates or updates an index template (v1/legacy version before 7.8).
+//
+// This service implements the legacy version of index templates as described
+// in https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-templates-v1.html.
+//
+// See e.g. IndexPutIndexTemplate and IndexPutComponentTemplate for the new version(s).
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (c *Client) IndexPutTemplate(name string) *IndicesPutTemplateService {
 	return NewIndicesPutTemplateService(c).Name(name)
 }
 
-// IndexDeleteTemplate deletes an index template.
-// Use XXXTemplate funcs to manage search templates.
+// IndexDeleteTemplate deletes an index template (v1/legacy version before 7.8).
+//
+// This service implements the legacy version of index templates as described
+// in https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-templates-v1.html.
+//
+// See e.g. IndexPutIndexTemplate and IndexPutComponentTemplate for the new version(s).
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (c *Client) IndexDeleteTemplate(name string) *IndicesDeleteTemplateService {
 	return NewIndicesDeleteTemplateService(c).Name(name)
+}
+
+// -- Index templates --
+
+// IndexPutIndexTemplate creates or updates an index template (new version after 7.8).
+//
+// This service implements the new version of index templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-put-template.html.
+//
+// See e.g. IndexPutTemplate for the v1/legacy version.
+func (c *Client) IndexPutIndexTemplate(name string) *IndicesPutIndexTemplateService {
+	return NewIndicesPutIndexTemplateService(c).Name(name)
+}
+
+// IndexGetIndexTemplate returns an index template (new version after 7.8).
+//
+// This service implements the new version of index templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-get-template.html.
+//
+// See e.g. IndexPutTemplate for the v1/legacy version.
+func (c *Client) IndexGetIndexTemplate(name string) *IndicesGetIndexTemplateService {
+	return NewIndicesGetIndexTemplateService(c).Name(name)
+}
+
+// IndexDeleteIndexTemplate deletes an index template (new version after 7.8).
+//
+// This service implements the new version of index templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-delete-template.html.
+//
+// See e.g. IndexPutTemplate for the v1/legacy version.
+func (c *Client) IndexDeleteIndexTemplate(name string) *IndicesDeleteIndexTemplateService {
+	return NewIndicesDeleteIndexTemplateService(c).Name(name)
+}
+
+// -- Component templates --
+
+// IndexPutComponentTemplate creates or updates a component template (available since 7.8).
+//
+// This service implements the component templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.10/indices-component-template.html.
+func (c *Client) IndexPutComponentTemplate(name string) *IndicesPutComponentTemplateService {
+	return NewIndicesPutComponentTemplateService(c).Name(name)
+}
+
+// IndexGetComponentTemplate returns a component template (available since 7.8).
+//
+// This service implements the component templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.10/getting-component-templates.html.
+func (c *Client) IndexGetComponentTemplate(name string) *IndicesGetComponentTemplateService {
+	return NewIndicesGetComponentTemplateService(c).Name(name)
+}
+
+// IndexDeleteComponentTemplate deletes a component template (available since 7.8).
+//
+// This service implements the component templates as described
+// on https://www.elastic.co/guide/en/elasticsearch/reference/7.10/indices-delete-component-template.html.
+func (c *Client) IndexDeleteComponentTemplate(name string) *IndicesDeleteComponentTemplateService {
+	return NewIndicesDeleteComponentTemplateService(c).Name(name)
 }
 
 // GetMapping gets a mapping.
@@ -1719,8 +1902,6 @@ func (c *Client) GetFieldMapping() *IndicesGetFieldMappingService {
 
 // -- cat APIs --
 
-// TODO cat fielddata
-// TODO cat master
 // TODO cat nodes
 // TODO cat pending tasks
 // TODO cat plugins
@@ -1728,6 +1909,16 @@ func (c *Client) GetFieldMapping() *IndicesGetFieldMappingService {
 // TODO cat thread pool
 // TODO cat shards
 // TODO cat segments
+
+// CatMaster returns information about the master node
+func (c *Client) CatMaster() *CatMasterService {
+	return NewCatMasterService(c)
+}
+
+// CatFielddata returns information about the amount of heap memory currently used by the field data cache.
+func (c *Client) CatFielddata() *CatFielddataService {
+	return NewCatFielddataService(c)
+}
 
 // CatAliases returns information about aliases.
 func (c *Client) CatAliases() *CatAliasesService {
@@ -1752,6 +1943,16 @@ func (c *Client) CatHealth() *CatHealthService {
 // CatIndices returns information about indices.
 func (c *Client) CatIndices() *CatIndicesService {
 	return NewCatIndicesService(c)
+}
+
+// CatShards returns information about shards.
+func (c *Client) CatShards() *CatShardsService {
+	return NewCatShardsService(c)
+}
+
+// CatSnapshots returns information about snapshots.
+func (c *Client) CatSnapshots() *CatSnapshotsService {
+	return NewCatSnapshotsService(c)
 }
 
 // -- Ingest APIs --
@@ -1905,6 +2106,23 @@ func (c *Client) XPackInfo() *XPackInfoService {
 	return NewXPackInfoService(c)
 }
 
+// -- X-Pack Async Search --
+
+// XPackAsyncSearchSubmit starts an asynchronous search.
+func (c *Client) XPackAsyncSearchSubmit() *XPackAsyncSearchSubmit {
+	return NewXPackAsyncSearchSubmit(c)
+}
+
+// XPackAsyncSearchGet retrieves the outcome of an asynchronous search.
+func (c *Client) XPackAsyncSearchGet() *XPackAsyncSearchGet {
+	return NewXPackAsyncSearchGet(c)
+}
+
+// XPackAsyncSearchDelete deletes an asynchronous search.
+func (c *Client) XPackAsyncSearchDelete() *XPackAsyncSearchDelete {
+	return NewXPackAsyncSearchDelete(c)
+}
+
 // -- X-Pack Index Lifecycle Management --
 
 // XPackIlmPutLifecycle adds or modifies an ilm policy.
@@ -1985,6 +2203,33 @@ func (c *Client) XPackSecurityDisableUser(username string) *XPackSecurityDisable
 // XPackSecurityDeleteUser deletes a user.
 func (c *Client) XPackSecurityDeleteUser(username string) *XPackSecurityDeleteUserService {
 	return NewXPackSecurityDeleteUserService(c).Username(username)
+}
+
+// -- X-Pack Rollup --
+
+// XPackRollupPut creates or updates a rollup job.
+func (c *Client) XPackRollupPut(jobId string) *XPackRollupPutService {
+	return NewXPackRollupPutService(c).JobId(jobId)
+}
+
+// XPackRollupGet gets a rollup job.
+func (c *Client) XPackRollupGet(jobId string) *XPackRollupGetService {
+	return NewXPackRollupGetService(c).JobId(jobId)
+}
+
+// XPackRollupDelete deletes a rollup job.
+func (c *Client) XPackRollupDelete(jobId string) *XPackRollupDeleteService {
+	return NewXPackRollupDeleteService(c).JobId(jobId)
+}
+
+// XPackRollupStart starts a rollup job.
+func (c *Client) XPackRollupStart(jobId string) *XPackRollupStartService {
+	return NewXPackRollupStartService(c).JobId(jobId)
+}
+
+// XPackRollupStop stops a rollup job.
+func (c *Client) XPackRollupStop(jobId string) *XPackRollupStopService {
+	return NewXPackRollupStopService(c).JobId(jobId)
 }
 
 // -- X-Pack Watcher --

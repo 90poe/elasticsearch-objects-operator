@@ -1,0 +1,58 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchindices
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchindices/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchindices/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchtemplates
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchtemplates/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - elasticsearchtemplates/status
+  verbs:
+  - get
+  - patch
+  - update

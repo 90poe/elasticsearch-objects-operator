@@ -1,7 +1,11 @@
+# Kubernetes Generated files - skip generated files, except for vendored files
+!vendor/**/zz_generated.*
+# editor and IDE paraphernalia
+.idea
+__debug*
 # Temporary Build Files
 build/_output
 build/_test
-cmd/__debug*
 # Created by https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 ### Emacs ###
 # -*- mode: gitignore; -*-
@@ -13,7 +17,6 @@ cmd/__debug*
 auto-save-list
 tramp
 .\#*
-bin
 # Org-mode
 .org-id-locations
 *_archive
@@ -74,7 +77,9 @@ Session.vim
 # auto-generated tag files
 tags
 ### VisualStudioCode ###
-.vscode/*
+.vscode
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
 artifacts
+/bin
+_build

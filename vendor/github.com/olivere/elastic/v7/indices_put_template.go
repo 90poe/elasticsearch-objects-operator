@@ -14,8 +14,16 @@ import (
 	"github.com/olivere/elastic/v7/uritemplates"
 )
 
-// IndicesPutTemplateService creates or updates index mappings.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/indices-templates.html.
+// IndicesPutTemplateService creates or updates templates.
+//
+// Index templates have changed during in 7.8 update of Elasticsearch.
+// This service implements the legacy version (7.7 or lower). If you want
+// the new version, please use the IndicesPutIndexTemplateService.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-templates-v1.html
+// for more details.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 type IndicesPutTemplateService struct {
 	client *Client
 
@@ -25,16 +33,17 @@ type IndicesPutTemplateService struct {
 	filterPath []string    // list of filters used to reduce the response
 	headers    http.Header // custom request-level HTTP headers
 
-	name          string
-	cause         string
-	order         interface{}
-	version       *int
-	create        *bool
-	timeout       string
-	masterTimeout string
-	flatSettings  *bool
-	bodyJson      interface{}
-	bodyString    string
+	name            string
+	cause           string
+	order           interface{}
+	version         *int
+	create          *bool
+	timeout         string
+	masterTimeout   string
+	flatSettings    *bool
+	includeTypeName *bool
+	bodyJson        interface{}
+	bodyString      string
 }
 
 // NewIndicesPutTemplateService creates a new IndicesPutTemplateService.
@@ -109,6 +118,12 @@ func (s *IndicesPutTemplateService) MasterTimeout(masterTimeout string) *Indices
 	return s
 }
 
+// IncludeTypeName indicates whether a type should be expected in the body of the mappings.
+func (s *IndicesPutTemplateService) IncludeTypeName(includeTypeName bool) *IndicesPutTemplateService {
+	s.includeTypeName = &includeTypeName
+	return s
+}
+
 // FlatSettings indicates whether to return settings in flat format (default: false).
 func (s *IndicesPutTemplateService) FlatSettings(flatSettings bool) *IndicesPutTemplateService {
 	s.flatSettings = &flatSettings
@@ -175,10 +190,10 @@ func (s *IndicesPutTemplateService) buildURL() (string, url.Values, error) {
 		params.Set("order", fmt.Sprintf("%v", s.order))
 	}
 	if s.version != nil {
-		params.Set("version", fmt.Sprintf("%v", *s.version))
+		params.Set("version", fmt.Sprint(*s.version))
 	}
 	if s.create != nil {
-		params.Set("create", fmt.Sprintf("%v", *s.create))
+		params.Set("create", fmt.Sprint(*s.create))
 	}
 	if s.cause != "" {
 		params.Set("cause", s.cause)
@@ -190,7 +205,10 @@ func (s *IndicesPutTemplateService) buildURL() (string, url.Values, error) {
 		params.Set("master_timeout", s.masterTimeout)
 	}
 	if s.flatSettings != nil {
-		params.Set("flat_settings", fmt.Sprintf("%v", *s.flatSettings))
+		params.Set("flat_settings", fmt.Sprint(*s.flatSettings))
+	}
+	if s.includeTypeName != nil {
+		params.Set("include_type_name", fmt.Sprint(*s.includeTypeName))
 	}
 	return path, params, nil
 }
@@ -211,6 +229,8 @@ func (s *IndicesPutTemplateService) Validate() error {
 }
 
 // Do executes the operation.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (s *IndicesPutTemplateService) Do(ctx context.Context) (*IndicesPutTemplateResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {

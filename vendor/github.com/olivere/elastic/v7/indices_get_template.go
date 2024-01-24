@@ -14,8 +14,16 @@ import (
 	"github.com/olivere/elastic/v7/uritemplates"
 )
 
-// IndicesGetTemplateService returns an index template.
-// See https://www.elastic.co/guide/en/elasticsearch/reference/7.0/indices-templates.html.
+// IndicesGetTemplateService returns an index template (v1).
+//
+// Index templates have changed during in 7.8 update of Elasticsearch.
+// This service implements the legacy version (7.7 or lower). If you want
+// the new version, please use the IndicesGetIndexTemplateService.
+//
+// See https://www.elastic.co/guide/en/elasticsearch/reference/7.9/indices-get-template-v1.html
+// for more details.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 type IndicesGetTemplateService struct {
 	client *Client
 
@@ -142,6 +150,8 @@ func (s *IndicesGetTemplateService) Validate() error {
 }
 
 // Do executes the operation.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (s *IndicesGetTemplateService) Do(ctx context.Context) (map[string]*IndicesGetTemplateResponse, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {

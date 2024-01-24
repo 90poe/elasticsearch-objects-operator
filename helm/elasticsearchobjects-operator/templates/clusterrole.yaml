@@ -1,0 +1,63 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    {{- include "elasticsearch-objects-operator.labels" . | nindent 4 }}
+    {{- with .Values.operator.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: {{ include "elasticsearch-objects-operator.fullname" . }}
+rules:
+rules:
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkaschemas
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkaschemas/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkaschemas/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkatopics
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkatopics/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - xo.90poe.io
+  resources:
+  - kafkatopics/status
+  verbs:
+  - get
+  - patch
+  - update

@@ -17,6 +17,8 @@ import (
 // IndicesExistsTemplateService checks if a given template exists.
 // See http://www.elastic.co/guide/en/elasticsearch/reference/7.0/indices-templates.html#indices-templates-exists
 // for documentation.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 type IndicesExistsTemplateService struct {
 	client *Client
 
@@ -26,8 +28,9 @@ type IndicesExistsTemplateService struct {
 	filterPath []string    // list of filters used to reduce the response
 	headers    http.Header // custom request-level HTTP headers
 
-	name  string
-	local *bool
+	name          string
+	local         *bool
+	masterTimeout string
 }
 
 // NewIndicesExistsTemplateService creates a new IndicesExistsTemplateService.
@@ -90,6 +93,12 @@ func (s *IndicesExistsTemplateService) Local(local bool) *IndicesExistsTemplateS
 	return s
 }
 
+// MasterTimeout specifies the timeout for connection to master.
+func (s *IndicesExistsTemplateService) MasterTimeout(masterTimeout string) *IndicesExistsTemplateService {
+	s.masterTimeout = masterTimeout
+	return s
+}
+
 // buildURL builds the URL for the operation.
 func (s *IndicesExistsTemplateService) buildURL() (string, url.Values, error) {
 	// Build URL
@@ -115,7 +124,10 @@ func (s *IndicesExistsTemplateService) buildURL() (string, url.Values, error) {
 		params.Set("filter_path", strings.Join(s.filterPath, ","))
 	}
 	if s.local != nil {
-		params.Set("local", fmt.Sprintf("%v", *s.local))
+		params.Set("local", fmt.Sprint(*s.local))
+	}
+	if s.masterTimeout != "" {
+		params.Set("master_timeout", s.masterTimeout)
 	}
 	return path, params, nil
 }
@@ -133,6 +145,8 @@ func (s *IndicesExistsTemplateService) Validate() error {
 }
 
 // Do executes the operation.
+//
+// Deprecated: Legacy index templates are deprecated in favor of composable templates.
 func (s *IndicesExistsTemplateService) Do(ctx context.Context) (bool, error) {
 	// Check pre-conditions
 	if err := s.Validate(); err != nil {
